@@ -14,178 +14,175 @@ const DashboardLayout = () => {
   return (
     <div
       className="
-        min-h-dvh
+        flex min-h-dvh w-full
         bg-slate-50
         text-slate-900
-        transition-colors
-        duration-200
+        transition-colors duration-300
         dark:bg-slate-950
         dark:text-slate-100
       "
     >
-      <div className="flex min-h-dvh w-full">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <button
+          type="button"
+          aria-label={t("common.close")}
+          onClick={() => setIsSidebarOpen(false)}
+          className="
+            fixed inset-0 z-40
+            bg-slate-900/30
+            backdrop-blur-sm
+            dark:bg-black/60
+            lg:hidden
+          "
+        />
+      )}
 
-        {/* Mobile Overlay */}
-        {isSidebarOpen && (
+      {/* Sidebar */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50
+          w-72
+          transform
+          transition-transform duration-300
+
+          lg:static
+          lg:translate-x-0
+
+          ${
+            isSidebarOpen
+              ? "translate-x-0"
+              : "-translate-x-full"
+          }
+        `}
+      >
+        <SideMenu
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      </aside>
+
+      {/* Application */}
+      <div className="flex min-w-0 flex-1 flex-col">
+
+        {/* Header */}
+        <header
+          className="
+            sticky top-0 z-30
+            flex h-16 shrink-0
+            items-center
+            border-b
+            border-slate-200
+            bg-white/95
+            px-4
+            backdrop-blur-md
+            transition-colors duration-300
+
+            dark:border-slate-800
+            dark:bg-slate-950/95
+
+            sm:px-6
+          "
+        >
+          {/* Mobile menu */}
           <button
             type="button"
-            aria-label={t("common.close")}
-            onClick={() => setIsSidebarOpen(false)}
+            onClick={() => setIsSidebarOpen(true)}
             className="
-              fixed inset-0 z-40
-              bg-black/40
-              backdrop-blur-[2px]
-              dark:bg-black/60
+              mr-3
+              rounded-lg
+              p-2
+              text-slate-500
+              transition-colors
+
+              hover:bg-slate-100
+              hover:text-slate-900
+
+              dark:text-slate-400
+              dark:hover:bg-slate-800
+              dark:hover:text-white
+
               lg:hidden
             "
-          />
-        )}
-
-        {/* Sidebar */}
-        <aside
-          className={`
-            fixed inset-y-0 left-0 z-50
-            w-72
-            transform
-            transition-transform
-            duration-300
-            ease-in-out
-
-            lg:static
-            lg:translate-x-0
-
-            ${
-              isSidebarOpen
-                ? "translate-x-0"
-                : "-translate-x-full"
-            }
-          `}
-        >
-          <SideMenu
-            onClose={() => setIsSidebarOpen(false)}
-          />
-        </aside>
-
-        {/* Main */}
-        <main className="flex min-w-0 flex-1 flex-col">
-
-          {/* Header */}
-          <header
-            className="
-              sticky top-0 z-30
-              flex h-16 shrink-0
-              items-center
-              border-b
-              border-slate-200
-              bg-white/95
-              px-4
-              backdrop-blur
-              transition-colors
-              duration-200
-
-              dark:border-slate-800
-              dark:bg-slate-950/95
-
-              sm:px-6
-            "
           >
-            {/* Mobile menu */}
-            <button
-              type="button"
-              onClick={() => setIsSidebarOpen(true)}
-              aria-label="Open menu"
+            <Menu size={22} />
+          </button>
+
+          {/* Page title */}
+          <div>
+            <h1
               className="
-                mr-3 rounded-lg p-2
-                text-slate-500
-                transition-colors
-                hover:bg-slate-100
-                hover:text-slate-900
-
-                dark:text-slate-400
-                dark:hover:bg-slate-800
-                dark:hover:text-white
-
-                lg:hidden
+                text-sm
+                font-semibold
+                text-slate-900
+                dark:text-white
               "
             >
-              <Menu size={22} />
-            </button>
+              {t("dashboard.title")}
+            </h1>
 
-            {/* Header title */}
-            <div className="hidden sm:block">
-              <h1
-                className="
-                  text-sm font-semibold
-                  text-slate-900
-                  dark:text-white
-                "
-              >
-                {t("dashboard.title")}
-              </h1>
+            <p
+              className="
+                hidden
+                text-xs
+                text-slate-500
+                dark:text-slate-400
+                sm:block
+              "
+            >
+              {t("header.businessManagement")}
+            </p>
+          </div>
 
-              <p
-                className="
-                  text-xs
-                  text-slate-500
-                  dark:text-slate-500
-                "
-              >
-                {t("header.businessManagement")}
-              </p>
-            </div>
+          {/* Controls */}
+          <div className="ml-auto flex items-center gap-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
+        </header>
 
-            {/* Header Controls */}
-            <div className="ml-auto flex items-center gap-2">
-              <LanguageSwitcher />
-              <ThemeToggle />
-            </div>
-          </header>
+        {/* Main interface */}
+        <main
+          className="
+            flex-1
+            bg-slate-50
+            transition-colors duration-300
+            dark:bg-slate-950
+          "
+        >
+          <div className="p-4 sm:p-6 lg:p-8">
 
-          {/* Content */}
-          <section
-            className="
-              flex-1
-              bg-slate-50
-              p-4
-              transition-colors
-              duration-200
-
-              dark:bg-slate-950
-
-              sm:p-6
-              lg:p-8
-            "
-          >
             <div className="mx-auto max-w-7xl">
 
-              {/* Page Heading */}
-              <h2
-                className="
-                  text-2xl
-                  font-bold
-                  tracking-tight
-                  text-slate-900
-                  dark:text-white
-                  sm:text-3xl
-                "
-              >
-                {t("dashboard.welcome")}
-              </h2>
+              {/* Welcome */}
+              <div className="mb-8">
+                <h2
+                  className="
+                    text-2xl
+                    font-bold
+                    tracking-tight
+                    text-slate-900
+                    dark:text-white
+                    sm:text-3xl
+                  "
+                >
+                  {t("dashboard.welcome")}
+                </h2>
 
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  text-slate-500
-                  dark:text-slate-400
-                  sm:text-base
-                "
-              >
-                {t("dashboard.description")}
-              </p>
+                <p
+                  className="
+                    mt-2
+                    text-sm
+                    text-slate-500
+                    dark:text-slate-400
+                    sm:text-base
+                  "
+                >
+                  {t("dashboard.description")}
+                </p>
+              </div>
 
-              {/* Dashboard Cards */}
-              <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {/* Statistics */}
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
                 <DashboardCard
                   title={t("dashboard.todaySales")}
@@ -208,8 +205,134 @@ const DashboardLayout = () => {
                 />
 
               </div>
+
+              {/* Main dashboard area */}
+              <div className="mt-6 grid gap-6 lg:grid-cols-3">
+
+                {/* Sales overview */}
+                <section
+                  className="
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    bg-white
+                    p-6
+                    shadow-sm
+                    transition-colors duration-300
+
+                    dark:border-slate-800
+                    dark:bg-slate-900
+                    dark:shadow-none
+
+                    lg:col-span-2
+                  "
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3
+                        className="
+                          font-semibold
+                          text-slate-900
+                          dark:text-white
+                        "
+                      >
+                        {t("dashboard.overview")}
+                      </h3>
+
+                      <p
+                        className="
+                          mt-1
+                          text-sm
+                          text-slate-500
+                          dark:text-slate-400
+                        "
+                      >
+                        {t("dashboard.recentSales")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className="
+                      mt-8
+                      flex h-64
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-dashed
+                      border-slate-300
+                      bg-slate-50
+
+                      dark:border-slate-700
+                      dark:bg-slate-950
+                    "
+                  >
+                    <p
+                      className="
+                        text-sm
+                        text-slate-400
+                        dark:text-slate-500
+                      "
+                    >
+                      Sales chart will appear here
+                    </p>
+                  </div>
+                </section>
+
+                {/* Low stock */}
+                <section
+                  className="
+                    rounded-2xl
+                    border
+                    border-slate-200
+                    bg-white
+                    p-6
+                    shadow-sm
+                    transition-colors duration-300
+
+                    dark:border-slate-800
+                    dark:bg-slate-900
+                    dark:shadow-none
+                  "
+                >
+                  <h3
+                    className="
+                      font-semibold
+                      text-slate-900
+                      dark:text-white
+                    "
+                  >
+                    {t("dashboard.lowStock")}
+                  </h3>
+
+                  <div
+                    className="
+                      mt-6
+                      flex h-48
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-slate-50
+
+                      dark:bg-slate-950
+                    "
+                  >
+                    <p
+                      className="
+                        text-sm
+                        text-slate-400
+                        dark:text-slate-500
+                      "
+                    >
+                      No low-stock products
+                    </p>
+                  </div>
+                </section>
+
+              </div>
             </div>
-          </section>
+          </div>
         </main>
       </div>
     </div>
@@ -228,14 +351,15 @@ const DashboardCard = ({
   return (
     <div
       className="
-        rounded-xl
+        rounded-2xl
         border
         border-slate-200
         bg-white
         p-5
         shadow-sm
+
         transition-all
-        duration-200
+        duration-300
 
         hover:border-slate-300
         hover:shadow-md
@@ -251,7 +375,7 @@ const DashboardCard = ({
         className="
           text-sm
           text-slate-500
-          dark:text-slate-500
+          dark:text-slate-400
         "
       >
         {title}

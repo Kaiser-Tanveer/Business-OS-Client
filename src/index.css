@@ -16,17 +16,19 @@ body,
 }
 
 html {
-  background-color: #f8fafc;
-  transition: background-color 200ms ease;
+  background: #f8fafc;
+  transition: background-color 300ms ease;
 }
 
 html.dark {
-  background-color: #020617;
+  background: #020617;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
+
+  background: transparent;
 
   font-family:
     "Inter",
@@ -36,7 +38,9 @@ body {
     "Segoe UI",
     sans-serif;
 
-  background-color: transparent;
+  transition:
+    background-color 300ms ease,
+    color 300ms ease;
 }
 
 html[lang="bn"] body {
