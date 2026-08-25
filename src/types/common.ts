@@ -9,3 +9,9 @@ export interface Pagination {
   total: number;
   totalPages: number;
 }
+
+export interface BaseEntity {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+}
