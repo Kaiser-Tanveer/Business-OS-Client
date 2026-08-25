@@ -314,11 +314,11 @@ const SideMenu = ({ onClose }: SideMenuProps) => {
 
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
-              Business Owner
+              {t("user.businessOwner")}
             </p>
 
             <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-              Owner Account
+              {t("user.ownerAccount")}
             </p>
           </div>
         </div>
