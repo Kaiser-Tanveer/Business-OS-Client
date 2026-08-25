@@ -1,11 +1,11 @@
 import "./App.css";
 
-import DashboardLayout from "./assets/components/dashboard/DashboardLayout";
+import AppRoutes from "./routes/AppRoutes";
 
 function App() {
   return (
-    <div className="min-h-dvh bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
-      <DashboardLayout />
+    <div className="min-h-dvh w-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
+      <AppRoutes />
     </div>
   );
 }

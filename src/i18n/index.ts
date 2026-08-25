@@ -1,29 +1,24 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-import en from "../locales/en/translation";
-import bn from "../locales/bn/translation";
+import resources from "./resources";
 
-const savedLanguage = localStorage.getItem("language");
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
 
-const initialLanguage =
-  savedLanguage === "bn" ? "bn" : "en";
+    lng: "en",
 
-i18n.use(initReactI18next).init({
-  resources: {
-    en,
-    bn,
-  },
+    fallbackLng: "en",
 
-  lng: initialLanguage,
+    interpolation: {
+      escapeValue: false,
+    },
 
-  fallbackLng: "en",
-
-  interpolation: {
-    escapeValue: false,
-  },
-});
-
-document.documentElement.lang = initialLanguage;
+    react: {
+      useSuspense: false,
+    },
+  });
 
 export default i18n;

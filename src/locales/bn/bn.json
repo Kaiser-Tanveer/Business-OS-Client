@@ -1,0 +1,129 @@
+{
+  "common": {
+    "dashboard": "ড্যাশবোর্ড",
+    "sales": "বিক্রয়",
+    "products": "পণ্য",
+    "customers": "গ্রাহক",
+    "expenses": "খরচ",
+    "reports": "রিপোর্ট",
+    "settings": "সেটিংস",
+    "search": "অনুসন্ধান",
+    "save": "সংরক্ষণ",
+    "cancel": "বাতিল",
+    "delete": "মুছে ফেলুন",
+    "edit": "সম্পাদনা",
+    "add": "যোগ করুন",
+    "view": "দেখুন",
+    "close": "বন্ধ করুন",
+    "back": "পেছনে",
+    "next": "পরবর্তী",
+    "previous": "পূর্ববর্তী",
+    "submit": "জমা দিন",
+    "loading": "লোড হচ্ছে...",
+    "noData": "কোনো তথ্য পাওয়া যায়নি"
+  },
+
+  "app": {
+    "name": "বিজনেস OS",
+    "tagline": "ব্যবসা ব্যবস্থাপনা সিস্টেম"
+  },
+
+  "sidebar": {
+    "menu": "মেনু",
+    "system": "সিস্টেম",
+    "dashboard": "ড্যাশবোর্ড",
+    "sales": "বিক্রয়",
+    "products": "পণ্য",
+    "customers": "গ্রাহক",
+    "expenses": "খরচ",
+    "reports": "রিপোর্ট",
+    "settings": "সেটিংস"
+  },
+
+  "header": {
+    "businessManagement": "ব্যবসা ব্যবস্থাপনা সিস্টেম",
+    "lightMode": "লাইট মোড চালু করুন",
+    "darkMode": "ডার্ক মোড চালু করুন",
+    "language": "ভাষা"
+  },
+
+  "dashboard": {
+    "title": "ড্যাশবোর্ড",
+    "welcome": "বিজনেস OS-এ স্বাগতম।",
+    "overview": "ব্যবসার সারসংক্ষেপ",
+    "totalSales": "মোট বিক্রয়",
+    "totalExpenses": "মোট খরচ",
+    "totalProducts": "মোট পণ্য",
+    "totalCustomers": "মোট গ্রাহক",
+    "recentSales": "সাম্প্রতিক বিক্রয়",
+    "recentExpenses": "সাম্প্রতিক খরচ"
+  },
+
+  "sales": {
+    "title": "বিক্রয়",
+    "description": "আপনার বিক্রয় ও লেনদেন পরিচালনা করুন।",
+    "newSale": "নতুন বিক্রয়",
+    "totalSales": "মোট বিক্রয়",
+    "todaySales": "আজকের বিক্রয়",
+    "thisMonth": "এই মাস",
+    "invoice": "চালান",
+    "customer": "গ্রাহক",
+    "amount": "পরিমাণ",
+    "date": "তারিখ",
+    "status": "অবস্থা"
+  },
+
+  "products": {
+    "title": "পণ্য",
+    "description": "আপনার পণ্য ও ইনভেন্টরি পরিচালনা করুন।",
+    "addProduct": "পণ্য যোগ করুন",
+    "productName": "পণ্যের নাম",
+    "category": "ক্যাটাগরি",
+    "price": "মূল্য",
+    "stock": "স্টক",
+    "sku": "SKU"
+  },
+
+  "customers": {
+    "title": "গ্রাহক",
+    "description": "আপনার গ্রাহকদের পরিচালনা করুন।",
+    "addCustomer": "গ্রাহক যোগ করুন",
+    "name": "নাম",
+    "phone": "ফোন",
+    "email": "ইমেইল",
+    "address": "ঠিকানা"
+  },
+
+  "expenses": {
+    "title": "খরচ",
+    "description": "আপনার ব্যবসার খরচ ট্র্যাক করুন।",
+    "addExpense": "খরচ যোগ করুন",
+    "category": "ক্যাটাগরি",
+    "amount": "পরিমাণ",
+    "date": "তারিখ",
+    "description": "বিবরণ"
+  },
+
+  "reports": {
+    "title": "রিপোর্ট",
+    "description": "আপনার ব্যবসার রিপোর্ট ও বিশ্লেষণ দেখুন।",
+    "salesReport": "বিক্রয় রিপোর্ট",
+    "expenseReport": "খরচের রিপোর্ট",
+    "profitReport": "লাভের রিপোর্ট",
+    "generate": "রিপোর্ট তৈরি করুন"
+  },
+
+  "settings": {
+    "title": "সেটিংস",
+    "description": "আপনার Business OS সেটিংস পরিচালনা করুন।",
+    "general": "সাধারণ",
+    "appearance": "চেহারা",
+    "language": "ভাষা",
+    "theme": "থিম"
+  },
+
+  "user": {
+    "businessOwner": "ব্যবসার মালিক",
+    "ownerAccount": "মালিকের অ্যাকাউন্ট"
+  }
+}

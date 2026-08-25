@@ -12,8 +12,9 @@ export interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-export const ThemeContext =
-  createContext<ThemeContextType | undefined>(undefined);
+export const ThemeContext = createContext<
+  ThemeContextType | undefined
+>(undefined);
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -25,18 +26,22 @@ export const ThemeProvider = ({
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem("theme");
 
-    if (savedTheme === "dark" || savedTheme === "light") {
+    if (savedTheme === "light" || savedTheme === "dark") {
       return savedTheme;
     }
 
-    // Business OS default theme
+    // Business OS default
     return "dark";
   });
 
   useEffect(() => {
     const root = document.documentElement;
 
-    root.classList.toggle("dark", theme === "dark");
+    if (theme === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
 
     localStorage.setItem("theme", theme);
   }, [theme]);

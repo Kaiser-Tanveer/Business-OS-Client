@@ -1,0 +1,129 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "sales": "Sales",
+    "products": "Products",
+    "customers": "Customers",
+    "expenses": "Expenses",
+    "reports": "Reports",
+    "settings": "Settings",
+    "search": "Search",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "view": "View",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "noData": "No data available"
+  },
+
+  "app": {
+    "name": "Business OS",
+    "tagline": "Business Management System"
+  },
+
+  "sidebar": {
+    "menu": "Menu",
+    "system": "System",
+    "dashboard": "Dashboard",
+    "sales": "Sales",
+    "products": "Products",
+    "customers": "Customers",
+    "expenses": "Expenses",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+
+  "header": {
+    "businessManagement": "Business Management System",
+    "lightMode": "Switch to light mode",
+    "darkMode": "Switch to dark mode",
+    "language": "Language"
+  },
+
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to Business OS.",
+    "overview": "Business Overview",
+    "totalSales": "Total Sales",
+    "totalExpenses": "Total Expenses",
+    "totalProducts": "Total Products",
+    "totalCustomers": "Total Customers",
+    "recentSales": "Recent Sales",
+    "recentExpenses": "Recent Expenses"
+  },
+
+  "sales": {
+    "title": "Sales",
+    "description": "Manage your sales and transactions.",
+    "newSale": "New Sale",
+    "totalSales": "Total Sales",
+    "todaySales": "Today's Sales",
+    "thisMonth": "This Month",
+    "invoice": "Invoice",
+    "customer": "Customer",
+    "amount": "Amount",
+    "date": "Date",
+    "status": "Status"
+  },
+
+  "products": {
+    "title": "Products",
+    "description": "Manage your products and inventory.",
+    "addProduct": "Add Product",
+    "productName": "Product Name",
+    "category": "Category",
+    "price": "Price",
+    "stock": "Stock",
+    "sku": "SKU"
+  },
+
+  "customers": {
+    "title": "Customers",
+    "description": "Manage your customers.",
+    "addCustomer": "Add Customer",
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address"
+  },
+
+  "expenses": {
+    "title": "Expenses",
+    "description": "Track your business expenses.",
+    "addExpense": "Add Expense",
+    "category": "Category",
+    "amount": "Amount",
+    "date": "Date",
+    "description": "Description"
+  },
+
+  "reports": {
+    "title": "Reports",
+    "description": "View your business reports and analytics.",
+    "salesReport": "Sales Report",
+    "expenseReport": "Expense Report",
+    "profitReport": "Profit Report",
+    "generate": "Generate Report"
+  },
+
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your Business OS settings.",
+    "general": "General",
+    "appearance": "Appearance",
+    "language": "Language",
+    "theme": "Theme"
+  },
+
+  "user": {
+    "businessOwner": "Business Owner",
+    "ownerAccount": "Owner Account"
+  }
+}
