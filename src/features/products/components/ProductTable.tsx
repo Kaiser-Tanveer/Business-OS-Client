@@ -14,11 +14,13 @@ import type { Product } from "../ProductTypes";
 interface ProductTableProps {
   products: Product[];
   onDelete?: (id: string) => void;
+  onEdit?: (product: Product) => void;
 }
 
 const ProductTable = ({
   products,
   onDelete,
+  onEdit,
 }: ProductTableProps) => {
   return (
     <Card className="overflow-hidden p-0">
@@ -66,7 +68,13 @@ const ProductTable = ({
               return (
                 <tr
                   key={product.id}
-                  className="border-b border-slate-100 transition-colors hover:bg-slate-50 dark:border-slate-800/80 dark:hover:bg-slate-800/40"
+                  className="
+                    border-b border-slate-100
+                    transition-colors
+                    hover:bg-slate-50
+                    dark:border-slate-800/80
+                    dark:hover:bg-slate-800/40
+                  "
                 >
                   <td className="px-5 py-4">
                     <p className="font-medium text-slate-900 dark:text-white">
@@ -93,26 +101,24 @@ const ProductTable = ({
                   </td>
 
                   <td className="px-5 py-4">
-                    <div>
-                      <p
-                        className={`
-                          text-sm font-medium
-                          ${
-                            outOfStock
-                              ? "text-red-600 dark:text-red-400"
-                              : lowStock
-                              ? "text-yellow-600 dark:text-yellow-400"
-                              : "text-slate-900 dark:text-white"
-                          }
-                        `}
-                      >
-                        {product.stockQuantity}
-                      </p>
+                    <p
+                      className={`
+                        text-sm font-medium
+                        ${
+                          outOfStock
+                            ? "text-red-600 dark:text-red-400"
+                            : lowStock
+                            ? "text-yellow-600 dark:text-yellow-400"
+                            : "text-slate-900 dark:text-white"
+                        }
+                      `}
+                    >
+                      {product.stockQuantity}
+                    </p>
 
-                      <p className="text-xs text-slate-400">
-                        {product.unit}
-                      </p>
-                    </div>
+                    <p className="text-xs text-slate-400">
+                      {product.unit}
+                    </p>
                   </td>
 
                   <td className="px-5 py-4">
@@ -133,20 +139,42 @@ const ProductTable = ({
 
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-1">
+
+                      {/* EDIT */}
+
                       <button
                         type="button"
-                        className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+                        onClick={() =>
+                          onEdit?.(product)
+                        }
+                        className="
+                          rounded-lg p-2
+                          text-slate-400
+                          hover:bg-slate-100
+                          hover:text-slate-700
+                          dark:hover:bg-slate-800
+                          dark:hover:text-white
+                        "
                         aria-label={`Edit ${product.name}`}
                       >
                         <Pencil size={16} />
                       </button>
+
+                      {/* DELETE */}
 
                       <button
                         type="button"
                         onClick={() =>
                           onDelete?.(product.id)
                         }
-                        className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                        className="
+                          rounded-lg p-2
+                          text-slate-400
+                          hover:bg-red-50
+                          hover:text-red-600
+                          dark:hover:bg-red-500/10
+                          dark:hover:text-red-400
+                        "
                         aria-label={`Delete ${product.name}`}
                       >
                         <Trash2 size={16} />
@@ -154,11 +182,19 @@ const ProductTable = ({
 
                       <button
                         type="button"
-                        className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+                        className="
+                          rounded-lg p-2
+                          text-slate-400
+                          hover:bg-slate-100
+                          hover:text-slate-700
+                          dark:hover:bg-slate-800
+                          dark:hover:text-white
+                        "
                         aria-label="More options"
                       >
                         <MoreHorizontal size={16} />
                       </button>
+
                     </div>
                   </td>
                 </tr>
