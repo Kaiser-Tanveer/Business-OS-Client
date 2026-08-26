@@ -8,12 +8,12 @@ import ProductStats from "../features/products/components/ProductStats";
 import ProductFilters from "../features/products/components/ProductFilters";
 import ProductTable from "../features/products/components/ProductTable";
 
-import { mockProducts } from "../features/products/ProductApi";
+import { mockProducts } from "../features/products/productApi";
 
 import {
   setProducts,
   deleteProduct,
-} from "../features/products/ProductSlice";
+} from "../features/products/productSlice";
 
 import { useAppDispatch, useAppSelector } from "../hooks";
 
