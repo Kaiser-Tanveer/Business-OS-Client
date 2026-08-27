@@ -1,4 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import { Plus } from "lucide-react";
 
 import PageHeader from "../components/common/PageHeader";
@@ -9,6 +14,7 @@ import ProductStats from "../features/products/components/ProductStats";
 import ProductFilters from "../features/products/components/ProductFilters";
 import ProductTable from "../features/products/components/ProductTable";
 import ProductFormModal from "../features/products/components/ProductFormModal";
+import ProductDetailsModal from "../features/products/components/ProductDetailsModal";
 
 import { mockProducts } from "../features/products/ProductApi";
 
@@ -30,24 +36,24 @@ import {
 const Products = () => {
   const dispatch = useAppDispatch();
 
-  // --------------------------------
-  // PRODUCTS FROM REDUX
-  // --------------------------------
-
   const products = useAppSelector(
     (state) => state.products.products
   );
 
-  // --------------------------------
-  // LOCAL STATE
-  // --------------------------------
+  // =========================================
+  // STATE
+  // =========================================
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
 
   const [formOpen, setFormOpen] =
     useState(false);
 
   const [editingProduct, setEditingProduct] =
+    useState<Product | null>(null);
+
+  const [viewingProduct, setViewingProduct] =
     useState<Product | null>(null);
 
   const [productToDelete, setProductToDelete] =
@@ -59,17 +65,17 @@ const Products = () => {
   const [deleteLoading, setDeleteLoading] =
     useState(false);
 
-  // --------------------------------
+  // =========================================
   // LOAD PRODUCTS
-  // --------------------------------
+  // =========================================
 
   useEffect(() => {
     dispatch(setProducts(mockProducts));
   }, [dispatch]);
 
-  // --------------------------------
-  // SEARCH / FILTER
-  // --------------------------------
+  // =========================================
+  // SEARCH
+  // =========================================
 
   const filteredProducts = useMemo(() => {
     const searchTerm =
@@ -92,18 +98,18 @@ const Products = () => {
     );
   }, [products, search]);
 
-  // --------------------------------
-  // OPEN CREATE FORM
-  // --------------------------------
+  // =========================================
+  // CREATE
+  // =========================================
 
   const handleOpenCreate = () => {
     setEditingProduct(null);
     setFormOpen(true);
   };
 
-  // --------------------------------
-  // OPEN EDIT FORM
-  // --------------------------------
+  // =========================================
+  // EDIT
+  // =========================================
 
   const handleOpenEdit = (
     product: Product
@@ -112,9 +118,23 @@ const Products = () => {
     setFormOpen(true);
   };
 
-  // --------------------------------
-  // CREATE / UPDATE PRODUCT
-  // --------------------------------
+  // =========================================
+  // VIEW
+  // =========================================
+
+  const handleOpenView = (
+    product: Product
+  ) => {
+    setViewingProduct(product);
+  };
+
+  const handleCloseView = () => {
+    setViewingProduct(null);
+  };
+
+  // =========================================
+  // CREATE / UPDATE
+  // =========================================
 
   const handleSubmitProduct = (
     data: ProductFormData
@@ -124,7 +144,8 @@ const Products = () => {
     const now =
       new Date().toISOString();
 
-    // UPDATE EXISTING PRODUCT
+    // UPDATE
+
     if (editingProduct) {
       const updatedProduct: Product = {
         ...editingProduct,
@@ -137,7 +158,8 @@ const Products = () => {
       );
     }
 
-    // CREATE NEW PRODUCT
+    // CREATE
+
     else {
       const newProduct: Product = {
         id: crypto.randomUUID(),
@@ -146,7 +168,9 @@ const Products = () => {
         updatedAt: now,
       };
 
-      dispatch(addProduct(newProduct));
+      dispatch(
+        addProduct(newProduct)
+      );
     }
 
     setFormLoading(false);
@@ -154,20 +178,22 @@ const Products = () => {
     setEditingProduct(null);
   };
 
-  // --------------------------------
-  // CLOSE CREATE / EDIT FORM
-  // --------------------------------
+  // =========================================
+  // CLOSE FORM
+  // =========================================
 
   const handleCloseForm = () => {
     setFormOpen(false);
     setEditingProduct(null);
   };
 
-  // --------------------------------
-  // OPEN DELETE CONFIRMATION
-  // --------------------------------
+  // =========================================
+  // DELETE
+  // =========================================
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (
+    id: string
+  ) => {
     const product = products.find(
       (item) => item.id === id
     );
@@ -179,9 +205,9 @@ const Products = () => {
     setProductToDelete(product);
   };
 
-  // --------------------------------
+  // =========================================
   // CONFIRM DELETE
-  // --------------------------------
+  // =========================================
 
   const handleConfirmDelete = () => {
     if (!productToDelete) {
@@ -191,16 +217,18 @@ const Products = () => {
     setDeleteLoading(true);
 
     dispatch(
-      deleteProduct(productToDelete.id)
+      deleteProduct(
+        productToDelete.id
+      )
     );
 
     setDeleteLoading(false);
     setProductToDelete(null);
   };
 
-  // --------------------------------
+  // =========================================
   // CANCEL DELETE
-  // --------------------------------
+  // =========================================
 
   const handleCancelDelete = () => {
     if (deleteLoading) {
@@ -210,15 +238,15 @@ const Products = () => {
     setProductToDelete(null);
   };
 
-  // --------------------------------
-  // PAGE
-  // --------------------------------
+  // =========================================
+  // RENDER
+  // =========================================
 
   return (
     <>
       <div className="space-y-6">
 
-        {/* PAGE HEADER */}
+        {/* HEADER */}
 
         <PageHeader
           title="Products"
@@ -233,23 +261,24 @@ const Products = () => {
           }
         />
 
-        {/* PRODUCT STATISTICS */}
+        {/* STATISTICS */}
 
         <ProductStats
           products={products}
         />
 
-        {/* SEARCH & FILTERS */}
+        {/* FILTERS */}
 
         <ProductFilters
           search={search}
           onSearchChange={setSearch}
         />
 
-        {/* PRODUCT TABLE */}
+        {/* TABLE */}
 
         <ProductTable
           products={filteredProducts}
+          onView={handleOpenView}
           onEdit={handleOpenEdit}
           onDelete={handleDelete}
         />
@@ -257,7 +286,7 @@ const Products = () => {
       </div>
 
       {/* =========================================
-          ADD / EDIT PRODUCT MODAL
+          ADD / EDIT
           ========================================= */}
 
       <ProductFormModal
@@ -310,6 +339,16 @@ const Products = () => {
               }
             : undefined
         }
+      />
+
+      {/* =========================================
+          VIEW PRODUCT
+          ========================================= */}
+
+      <ProductDetailsModal
+        open={Boolean(viewingProduct)}
+        product={viewingProduct}
+        onClose={handleCloseView}
       />
 
       {/* =========================================
