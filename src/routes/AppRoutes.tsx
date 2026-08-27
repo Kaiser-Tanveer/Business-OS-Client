@@ -10,6 +10,7 @@ import Expenses from "../pages/Expenses";
 // import Inventory from "../pages/Inventory";
 import Reports from "../pages/Reports";
 import Settings from "../pages/Settings";
+import Inventory from "../pages/Inventory";
 // import NotFound from "../pages/NotFound";
 
 const AppRoutes = () => {
@@ -30,7 +31,7 @@ const AppRoutes = () => {
 
         <Route
           path="/inventory"
-        //   element={<Inventory />}
+          element={<Inventory />}
         />
 
         <Route
