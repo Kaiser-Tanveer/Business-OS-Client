@@ -46,9 +46,17 @@ import type {
   StockMovementType,
 } from "../features/inventory/inventoryTypes";
 import StockMovementHistory from "../features/inventory/components/StockMovementHistory";
+import StockAlerts from "../features/inventory/components/StockAlert";
 
 const Inventory = () => {
   const dispatch = useAppDispatch();
+
+  const [
+    selectedProductId,
+    setSelectedProductId,
+    ] = useState<string | undefined>(
+    undefined
+    );
 
   // =========================================
   // REDUX STATE
@@ -115,11 +123,13 @@ const Inventory = () => {
   // =========================================
 
   const handleOpenMovement = (
-    type: StockMovementType
-  ) => {
+    type: StockMovementType,
+    productId?: string
+    ) => {
     setMovementType(type);
+    setSelectedProductId(productId);
     setMovementModalOpen(true);
-  };
+    };
 
   // =========================================
   // CLOSE STOCK MODAL
@@ -127,7 +137,8 @@ const Inventory = () => {
 
   const handleCloseMovement = () => {
     setMovementModalOpen(false);
-  };
+    setSelectedProductId(undefined);
+    };
 
   // =========================================
   // CREATE STOCK MOVEMENT
@@ -285,6 +296,16 @@ const Inventory = () => {
         products={products}
       />
 
+        <StockAlerts
+        products={products}
+        onStockIn={(productId) =>
+            handleOpenMovement(
+            "IN",
+            productId
+            )
+        }
+        />
+
       {/* =====================================
           STOCK MOVEMENTS
           ===================================== */}
@@ -371,13 +392,16 @@ const Inventory = () => {
         open={movementModalOpen}
         type={movementType}
         products={products}
+        selectedProductId={
+            selectedProductId
+        }
         onClose={
-          handleCloseMovement
+            handleCloseMovement
         }
         onSubmit={
-          handleMovementSubmit
+            handleMovementSubmit
         }
-      />
+        />
 
     </div>
   );

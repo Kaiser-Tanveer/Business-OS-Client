@@ -22,6 +22,7 @@ interface StockMovementModalProps {
   open: boolean;
   type: StockMovementType;
   products: Product[];
+  selectedProductId?: string;
   onClose: () => void;
   onSubmit: (data: {
     productId: string;
@@ -35,6 +36,7 @@ const StockMovementModal = ({
   open,
   type,
   products,
+  selectedProductId,
   onClose,
   onSubmit,
 }: StockMovementModalProps) => {
@@ -63,7 +65,9 @@ const StockMovementModal = ({
       return;
     }
 
-    setProductId("");
+    setProductId(
+    selectedProductId ?? ""
+    );
     setQuantity("");
     setNote("");
 
@@ -72,7 +76,7 @@ const StockMovementModal = ({
         ? "PURCHASE"
         : "SALE"
     );
-  }, [open, type]);
+  }, [open, selectedProductId, type]);
 
   if (!open) {
     return null;
