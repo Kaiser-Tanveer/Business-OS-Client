@@ -3,7 +3,7 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 
-import type { Product } from "./ProductTypes";
+import type { Product } from "./productTypes";
 
 interface ProductState {
   products: Product[];

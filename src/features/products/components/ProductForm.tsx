@@ -6,7 +6,7 @@ import Button from "../../../components/ui/Button";
 import {
   productSchema,
   type ProductFormData,
-} from "../ProductSchema";
+} from "../productSchema";
 
 interface ProductFormProps {
   defaultValues?: Partial<ProductFormData>;

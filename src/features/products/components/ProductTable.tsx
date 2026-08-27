@@ -8,7 +8,7 @@ import {
 import Badge from "../../../components/ui/Badge";
 import Card from "../../../components/ui/Card";
 
-import type { Product } from "../ProductTypes";
+import type { Product } from "../productTypes";
 
 interface ProductTableProps {
   products: Product[];

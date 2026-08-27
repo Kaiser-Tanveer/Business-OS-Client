@@ -16,17 +16,17 @@ import ProductTable from "../features/products/components/ProductTable";
 import ProductFormModal from "../features/products/components/ProductFormModal";
 import ProductDetailsModal from "../features/products/components/ProductDetailsModal";
 
-import { mockProducts } from "../features/products/ProductApi";
+import { mockProducts } from "../features/products/productApi";
 
 import {
   addProduct,
   deleteProduct,
   setProducts,
   updateProduct,
-} from "../features/products/ProductSlice";
+} from "../features/products/productSlice";
 
-import type { Product } from "../features/products/ProductTypes";
-import type { ProductFormData } from "../features/products/ProductSchema";
+import type { Product } from "../features/products/productTypes";
+import type { ProductFormData } from "../features/products/productSchema";
 
 import {
   useAppDispatch,

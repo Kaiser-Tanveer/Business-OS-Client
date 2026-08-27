@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 
 import Card from "../../../components/ui/Card";
-import type { Product } from "../ProductTypes";
+import type { Product } from "../productTypes";
 
 interface ProductStatsProps {
   products: Product[];

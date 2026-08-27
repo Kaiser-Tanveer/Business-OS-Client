@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 
 import ProductForm from "./ProductForm";
-import type { ProductFormData } from "../ProductSchema";
+import type { ProductFormData } from "../productSchema";
 
 interface ProductFormModalProps {
   open: boolean;
