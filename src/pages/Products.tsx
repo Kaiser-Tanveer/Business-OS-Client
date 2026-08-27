@@ -3,15 +3,14 @@ import { Plus } from "lucide-react";
 
 import PageHeader from "../components/common/PageHeader";
 import Button from "../components/ui/Button";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 
 import ProductStats from "../features/products/components/ProductStats";
 import ProductFilters from "../features/products/components/ProductFilters";
 import ProductTable from "../features/products/components/ProductTable";
-import ProductFormModal from "../features/products/components/ProducFormtModal";
+import ProductFormModal from "../features/products/components/ProductFormModal";
 
-import {
-  mockProducts,
-} from "../features/products/ProductApi";
+import { mockProducts } from "../features/products/ProductApi";
 
 import {
   addProduct,
@@ -31,9 +30,17 @@ import {
 const Products = () => {
   const dispatch = useAppDispatch();
 
+  // --------------------------------
+  // PRODUCTS FROM REDUX
+  // --------------------------------
+
   const products = useAppSelector(
     (state) => state.products.products
   );
+
+  // --------------------------------
+  // LOCAL STATE
+  // --------------------------------
 
   const [search, setSearch] = useState("");
 
@@ -43,12 +50,26 @@ const Products = () => {
   const [editingProduct, setEditingProduct] =
     useState<Product | null>(null);
 
+  const [productToDelete, setProductToDelete] =
+    useState<Product | null>(null);
+
   const [formLoading, setFormLoading] =
     useState(false);
+
+  const [deleteLoading, setDeleteLoading] =
+    useState(false);
+
+  // --------------------------------
+  // LOAD PRODUCTS
+  // --------------------------------
 
   useEffect(() => {
     dispatch(setProducts(mockProducts));
   }, [dispatch]);
+
+  // --------------------------------
+  // SEARCH / FILTER
+  // --------------------------------
 
   const filteredProducts = useMemo(() => {
     const searchTerm =
@@ -72,7 +93,7 @@ const Products = () => {
   }, [products, search]);
 
   // --------------------------------
-  // ADD PRODUCT
+  // OPEN CREATE FORM
   // --------------------------------
 
   const handleOpenCreate = () => {
@@ -81,7 +102,7 @@ const Products = () => {
   };
 
   // --------------------------------
-  // EDIT PRODUCT
+  // OPEN EDIT FORM
   // --------------------------------
 
   const handleOpenEdit = (
@@ -92,7 +113,7 @@ const Products = () => {
   };
 
   // --------------------------------
-  // CREATE / UPDATE
+  // CREATE / UPDATE PRODUCT
   // --------------------------------
 
   const handleSubmitProduct = (
@@ -103,7 +124,7 @@ const Products = () => {
     const now =
       new Date().toISOString();
 
-    // EDIT
+    // UPDATE EXISTING PRODUCT
     if (editingProduct) {
       const updatedProduct: Product = {
         ...editingProduct,
@@ -116,13 +137,11 @@ const Products = () => {
       );
     }
 
-    // CREATE
+    // CREATE NEW PRODUCT
     else {
       const newProduct: Product = {
         id: crypto.randomUUID(),
-
         ...data,
-
         createdAt: now,
         updatedAt: now,
       };
@@ -136,17 +155,7 @@ const Products = () => {
   };
 
   // --------------------------------
-  // DELETE
-  // --------------------------------
-
-  const handleDelete = (
-    id: string
-  ) => {
-    dispatch(deleteProduct(id));
-  };
-
-  // --------------------------------
-  // CLOSE FORM
+  // CLOSE CREATE / EDIT FORM
   // --------------------------------
 
   const handleCloseForm = () => {
@@ -154,11 +163,62 @@ const Products = () => {
     setEditingProduct(null);
   };
 
+  // --------------------------------
+  // OPEN DELETE CONFIRMATION
+  // --------------------------------
+
+  const handleDelete = (id: string) => {
+    const product = products.find(
+      (item) => item.id === id
+    );
+
+    if (!product) {
+      return;
+    }
+
+    setProductToDelete(product);
+  };
+
+  // --------------------------------
+  // CONFIRM DELETE
+  // --------------------------------
+
+  const handleConfirmDelete = () => {
+    if (!productToDelete) {
+      return;
+    }
+
+    setDeleteLoading(true);
+
+    dispatch(
+      deleteProduct(productToDelete.id)
+    );
+
+    setDeleteLoading(false);
+    setProductToDelete(null);
+  };
+
+  // --------------------------------
+  // CANCEL DELETE
+  // --------------------------------
+
+  const handleCancelDelete = () => {
+    if (deleteLoading) {
+      return;
+    }
+
+    setProductToDelete(null);
+  };
+
+  // --------------------------------
+  // PAGE
+  // --------------------------------
+
   return (
     <>
       <div className="space-y-6">
 
-        {/* HEADER */}
+        {/* PAGE HEADER */}
 
         <PageHeader
           title="Products"
@@ -173,20 +233,20 @@ const Products = () => {
           }
         />
 
-        {/* STATS */}
+        {/* PRODUCT STATISTICS */}
 
         <ProductStats
           products={products}
         />
 
-        {/* FILTERS */}
+        {/* SEARCH & FILTERS */}
 
         <ProductFilters
           search={search}
           onSearchChange={setSearch}
         />
 
-        {/* TABLE */}
+        {/* PRODUCT TABLE */}
 
         <ProductTable
           products={filteredProducts}
@@ -196,52 +256,79 @@ const Products = () => {
 
       </div>
 
-      {/* CREATE / EDIT MODAL */}
+      {/* =========================================
+          ADD / EDIT PRODUCT MODAL
+          ========================================= */}
 
       <ProductFormModal
         open={formOpen}
         onClose={handleCloseForm}
         onSubmit={handleSubmitProduct}
         loading={formLoading}
-
         title={
           editingProduct
             ? "Edit Product"
             : "Add Product"
         }
-
         description={
           editingProduct
             ? "Update product information, pricing and stock."
             : "Add a new product to your inventory."
         }
-
         defaultValues={
           editingProduct
             ? {
                 name:
                   editingProduct.name,
+
                 sku:
                   editingProduct.sku,
+
                 category:
                   editingProduct.category,
+
                 description:
                   editingProduct.description,
+
                 purchasePrice:
                   editingProduct.purchasePrice,
+
                 sellingPrice:
                   editingProduct.sellingPrice,
+
                 stockQuantity:
                   editingProduct.stockQuantity,
+
                 lowStockThreshold:
                   editingProduct.lowStockThreshold,
+
                 unit:
                   editingProduct.unit,
+
                 status:
                   editingProduct.status,
               }
             : undefined
         }
+      />
+
+      {/* =========================================
+          DELETE CONFIRMATION
+          ========================================= */}
+
+      <ConfirmDialog
+        open={Boolean(productToDelete)}
+        title="Delete Product?"
+        message={
+          productToDelete
+            ? `Are you sure you want to delete "${productToDelete.name}"? This action cannot be undone.`
+            : "Are you sure you want to delete this product?"
+        }
+        confirmText="Delete Product"
+        cancelText="Cancel"
+        loading={deleteLoading}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
       />
     </>
   );

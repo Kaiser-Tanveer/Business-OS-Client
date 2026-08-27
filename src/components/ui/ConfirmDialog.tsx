@@ -1,4 +1,7 @@
-import { AlertTriangle, X } from "lucide-react";
+import {
+  AlertTriangle,
+  X,
+} from "lucide-react";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -21,6 +24,8 @@ const ConfirmDialog = ({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) => {
+
+  // Don't render anything when closed
   if (!open) {
     return null;
   }
@@ -28,8 +33,12 @@ const ConfirmDialog = ({
   return (
     <div
       className="
-        fixed inset-0 z-[110]
-        flex items-center justify-center
+        fixed
+        inset-0
+        z-[110]
+        flex
+        items-center
+        justify-center
         bg-black/50
         p-4
         backdrop-blur-sm
@@ -41,7 +50,8 @@ const ConfirmDialog = ({
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         className="
-          w-full max-w-md
+          w-full
+          max-w-md
           rounded-2xl
           border
           border-slate-200
@@ -56,13 +66,22 @@ const ConfirmDialog = ({
           event.stopPropagation()
         }
       >
-        {/* Icon + Close */}
+
+        {/* ======================================
+            HEADER
+            ====================================== */}
 
         <div className="flex items-start justify-between">
+
+          {/* Warning Icon */}
+
           <div
             className="
-              flex h-11 w-11
-              items-center justify-center
+              flex
+              h-11
+              w-11
+              items-center
+              justify-center
               rounded-full
               bg-red-50
               text-red-600
@@ -74,6 +93,8 @@ const ConfirmDialog = ({
             <AlertTriangle size={22} />
           </div>
 
+          {/* Close Button */}
+
           <button
             type="button"
             onClick={onCancel}
@@ -84,8 +105,10 @@ const ConfirmDialog = ({
               p-2
               text-slate-400
               transition
+
               hover:bg-slate-100
               hover:text-slate-700
+
               disabled:cursor-not-allowed
               disabled:opacity-50
 
@@ -95,37 +118,58 @@ const ConfirmDialog = ({
           >
             <X size={19} />
           </button>
+
         </div>
 
-        {/* Content */}
+        {/* ======================================
+            CONTENT
+            ====================================== */}
 
         <div className="mt-4">
+
           <h2
             id="confirm-dialog-title"
             className="
               text-lg
               font-semibold
               text-slate-900
+
               dark:text-white
             "
           >
             {title}
           </h2>
 
-          <p className="
-            mt-2
-            text-sm
-            leading-6
-            text-slate-500
-            dark:text-slate-400
-          ">
+          <p
+            className="
+              mt-2
+              text-sm
+              leading-6
+              text-slate-500
+
+              dark:text-slate-400
+            "
+          >
             {message}
           </p>
+
         </div>
 
-        {/* Actions */}
+        {/* ======================================
+            ACTION BUTTONS
+            ====================================== */}
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div
+          className="
+            mt-6
+            flex
+            justify-end
+            gap-3
+          "
+        >
+
+          {/* CANCEL */}
+
           <button
             type="button"
             onClick={onCancel}
@@ -156,6 +200,8 @@ const ConfirmDialog = ({
             {cancelText}
           </button>
 
+          {/* CONFIRM */}
+
           <button
             type="button"
             onClick={onConfirm}
@@ -180,7 +226,9 @@ const ConfirmDialog = ({
               ? "Deleting..."
               : confirmText}
           </button>
+
         </div>
+
       </div>
     </div>
   );
