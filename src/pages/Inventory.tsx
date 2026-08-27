@@ -45,6 +45,7 @@ import type {
   StockMovementReason,
   StockMovementType,
 } from "../features/inventory/inventoryTypes";
+import StockMovementHistory from "../features/inventory/components/StockMovementHistory";
 
 const Inventory = () => {
   const dispatch = useAppDispatch();
@@ -352,6 +353,15 @@ const Inventory = () => {
         </div>
 
       </Card>
+
+      {/* =====================================
+    STOCK MOVEMENT HISTORY
+    ===================================== */}
+
+    <StockMovementHistory
+    movements={movements}
+    products={products}
+    />
 
       {/* =====================================
           STOCK MOVEMENT MODAL
