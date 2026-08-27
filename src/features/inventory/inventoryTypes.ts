@@ -13,16 +13,10 @@ export type StockMovementReason =
 
 export interface StockMovement {
   id: string;
-
   productId: string;
-
   type: StockMovementType;
-
   reason: StockMovementReason;
-
   quantity: number;
-
   note?: string;
-
   createdAt: string;
 }

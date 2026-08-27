@@ -7,16 +7,10 @@ import type { Product } from "./productTypes";
 
 interface ProductState {
   products: Product[];
-  selectedProduct: Product | null;
-  loading: boolean;
-  error: string | null;
 }
 
 const initialState: ProductState = {
   products: [],
-  selectedProduct: null,
-  loading: false,
-  error: null,
 };
 
 const productSlice = createSlice({
@@ -25,6 +19,10 @@ const productSlice = createSlice({
   initialState,
 
   reducers: {
+    // =========================================
+    // SET PRODUCTS
+    // =========================================
+
     setProducts: (
       state,
       action: PayloadAction<Product[]>
@@ -32,27 +30,43 @@ const productSlice = createSlice({
       state.products = action.payload;
     },
 
+    // =========================================
+    // ADD PRODUCT
+    // =========================================
+
     addProduct: (
       state,
       action: PayloadAction<Product>
     ) => {
-      state.products.push(action.payload);
+      state.products.push(
+        action.payload
+      );
     },
+
+    // =========================================
+    // UPDATE PRODUCT
+    // =========================================
 
     updateProduct: (
       state,
       action: PayloadAction<Product>
     ) => {
-      const index = state.products.findIndex(
-        (product) =>
-          product.id === action.payload.id
-      );
+      const index =
+        state.products.findIndex(
+          (product) =>
+            product.id ===
+            action.payload.id
+        );
 
       if (index !== -1) {
         state.products[index] =
           action.payload;
       }
     },
+
+    // =========================================
+    // DELETE PRODUCT
+    // =========================================
 
     deleteProduct: (
       state,
@@ -61,35 +75,38 @@ const productSlice = createSlice({
       state.products =
         state.products.filter(
           (product) =>
-            product.id !== action.payload
+            product.id !==
+            action.payload
         );
     },
 
-    selectProduct: (
-      state,
-      action: PayloadAction<string | null>
-    ) => {
-      state.selectedProduct =
-        action.payload
-          ? state.products.find(
-              (product) =>
-                product.id === action.payload
-            ) ?? null
-          : null;
-    },
+    // =========================================
+    // UPDATE STOCK
+    // =========================================
 
-    setLoading: (
+    updateProductStock: (
       state,
-      action: PayloadAction<boolean>
+      action: PayloadAction<{
+        productId: string;
+        quantity: number;
+      }>
     ) => {
-      state.loading = action.payload;
-    },
+      const product =
+        state.products.find(
+          (item) =>
+            item.id ===
+            action.payload.productId
+        );
 
-    setError: (
-      state,
-      action: PayloadAction<string | null>
-    ) => {
-      state.error = action.payload;
+      if (!product) {
+        return;
+      }
+
+      product.stockQuantity =
+        action.payload.quantity;
+
+      product.updatedAt =
+        new Date().toISOString();
     },
   },
 });
@@ -99,9 +116,7 @@ export const {
   addProduct,
   updateProduct,
   deleteProduct,
-  selectProduct,
-  setLoading,
-  setError,
+  updateProductStock,
 } = productSlice.actions;
 
 export default productSlice.reducer;
