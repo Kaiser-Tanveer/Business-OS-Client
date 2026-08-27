@@ -1,23 +1,32 @@
-import { useEffect } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+} from "lucide-react";
 
 import PageHeader from "../components/common/PageHeader";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
 
 import InventoryStats from "../features/inventory/components/InventoryStats";
-
-import Card from "../components/ui/Card";
+import StockMovementModal from "../features/inventory/components/StockMovementModal";
 
 import {
   mockStockMovements,
 } from "../features/inventory/inventoryApi";
 
 import {
+  addMovement,
   setMovements,
 } from "../features/inventory/inventorySlice";
 
 import {
-  useAppDispatch,
-  useAppSelector,
-} from "../hooks";
+  updateProductStock,
+} from "../features/products/productSlice";
 
 import {
   mockProducts,
@@ -27,17 +36,46 @@ import {
   setProducts,
 } from "../features/products/productSlice";
 
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../hooks";
+
+import type {
+  StockMovementReason,
+  StockMovementType,
+} from "../features/inventory/inventoryTypes";
+
 const Inventory = () => {
   const dispatch = useAppDispatch();
 
+  // =========================================
+  // REDUX STATE
+  // =========================================
+
   const products = useAppSelector(
-    (state) => state.products.products
+    (state) =>
+      state.products.products
   );
 
   const movements = useAppSelector(
     (state) =>
       state.inventory.movements
   );
+
+  // =========================================
+  // LOCAL STATE
+  // =========================================
+
+  const [
+    movementModalOpen,
+    setMovementModalOpen,
+  ] = useState(false);
+
+  const [
+    movementType,
+    setMovementType,
+  ] = useState<StockMovementType>("IN");
 
   // =========================================
   // LOAD PRODUCTS
@@ -49,10 +87,13 @@ const Inventory = () => {
         setProducts(mockProducts)
       );
     }
-  }, [dispatch, products.length]);
+  }, [
+    dispatch,
+    products.length,
+  ]);
 
   // =========================================
-  // LOAD STOCK MOVEMENTS
+  // LOAD MOVEMENTS
   // =========================================
 
   useEffect(() => {
@@ -63,7 +104,127 @@ const Inventory = () => {
         )
       );
     }
-  }, [dispatch, movements.length]);
+  }, [
+    dispatch,
+    movements.length,
+  ]);
+
+  // =========================================
+  // OPEN STOCK MODAL
+  // =========================================
+
+  const handleOpenMovement = (
+    type: StockMovementType
+  ) => {
+    setMovementType(type);
+    setMovementModalOpen(true);
+  };
+
+  // =========================================
+  // CLOSE STOCK MODAL
+  // =========================================
+
+  const handleCloseMovement = () => {
+    setMovementModalOpen(false);
+  };
+
+  // =========================================
+  // CREATE STOCK MOVEMENT
+  // =========================================
+
+  const handleMovementSubmit = (
+    data: {
+      productId: string;
+      quantity: number;
+      reason: StockMovementReason;
+      note: string;
+    }
+  ) => {
+    const product =
+      products.find(
+        (item) =>
+          item.id ===
+          data.productId
+      );
+
+    if (!product) {
+      return;
+    }
+
+    // =======================================
+    // CALCULATE NEW STOCK
+    // =======================================
+
+    let newStock =
+      product.stockQuantity;
+
+    if (movementType === "IN") {
+      newStock += data.quantity;
+    }
+
+    if (movementType === "OUT") {
+      newStock -= data.quantity;
+    }
+
+    // =======================================
+    // PREVENT NEGATIVE STOCK
+    // =======================================
+
+    if (newStock < 0) {
+      window.alert(
+        "Stock cannot be negative."
+      );
+
+      return;
+    }
+
+    // =======================================
+    // CREATE MOVEMENT
+    // =======================================
+
+    const movement = {
+      id: crypto.randomUUID(),
+
+      productId:
+        data.productId,
+
+      type: movementType,
+
+      reason: data.reason,
+
+      quantity: data.quantity,
+
+      note:
+        data.note || undefined,
+
+      createdAt:
+        new Date().toISOString(),
+    };
+
+    // =======================================
+    // UPDATE REDUX
+    // =======================================
+
+    dispatch(
+      addMovement(movement)
+    );
+
+    dispatch(
+      updateProductStock({
+        productId:
+          data.productId,
+
+        quantity:
+          newStock,
+      })
+    );
+
+    // =======================================
+    // CLOSE MODAL
+    // =======================================
+
+    setMovementModalOpen(false);
+  };
 
   // =========================================
   // RENDER
@@ -72,24 +233,74 @@ const Inventory = () => {
   return (
     <div className="space-y-6">
 
-      {/* PAGE HEADER */}
+      {/* =====================================
+          HEADER
+          ===================================== */}
 
       <PageHeader
         title="Inventory"
         description="Monitor stock levels and manage stock movements."
+        action={
+          <div className="flex flex-wrap gap-2">
+
+            <Button
+              onClick={() =>
+                handleOpenMovement(
+                  "IN"
+                )
+              }
+            >
+              <ArrowDownToLine
+                size={17}
+              />
+
+              Stock In
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={() =>
+                handleOpenMovement(
+                  "OUT"
+                )
+              }
+            >
+              <ArrowUpFromLine
+                size={17}
+              />
+
+              Stock Out
+            </Button>
+
+          </div>
+        }
       />
 
-      {/* STATISTICS */}
+      {/* =====================================
+          STATISTICS
+          ===================================== */}
 
       <InventoryStats
         products={products}
       />
 
-      {/* STOCK MOVEMENTS */}
+      {/* =====================================
+          STOCK MOVEMENTS
+          ===================================== */}
 
       <Card>
 
-        <div className="flex items-center justify-between">
+        <div
+          className="
+            flex
+            flex-col
+            gap-4
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
 
           <div>
             <h2
@@ -119,6 +330,7 @@ const Inventory = () => {
 
           <span
             className="
+              w-fit
               rounded-full
               bg-slate-100
               px-3
@@ -140,6 +352,22 @@ const Inventory = () => {
         </div>
 
       </Card>
+
+      {/* =====================================
+          STOCK MOVEMENT MODAL
+          ===================================== */}
+
+      <StockMovementModal
+        open={movementModalOpen}
+        type={movementType}
+        products={products}
+        onClose={
+          handleCloseMovement
+        }
+        onSubmit={
+          handleMovementSubmit
+        }
+      />
 
     </div>
   );
