@@ -15,7 +15,6 @@ const initialState: SalesState = {
 
 const salesSlice = createSlice({
   name: "sales",
-
   initialState,
 
   reducers: {
@@ -23,25 +22,20 @@ const salesSlice = createSlice({
       state,
       action: PayloadAction<Sale>
     ) => {
-      state.sales.unshift(
-        action.payload
-      );
+      state.sales.unshift(action.payload);
     },
 
     updateSale: (
       state,
       action: PayloadAction<Sale>
     ) => {
-      const index =
-        state.sales.findIndex(
-          (sale) =>
-            sale.id ===
-            action.payload.id
-        );
+      const index = state.sales.findIndex(
+        (sale) =>
+          sale.id === action.payload.id
+      );
 
       if (index !== -1) {
-        state.sales[index] =
-          action.payload;
+        state.sales[index] = action.payload;
       }
     },
 
@@ -49,12 +43,10 @@ const salesSlice = createSlice({
       state,
       action: PayloadAction<string>
     ) => {
-      state.sales =
-        state.sales.filter(
-          (sale) =>
-            sale.id !==
-            action.payload
-        );
+      state.sales = state.sales.filter(
+        (sale) =>
+          sale.id !== action.payload
+      );
     },
   },
 });

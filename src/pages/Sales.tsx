@@ -13,7 +13,7 @@ import { useMemo, useState } from "react";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
 
-import { useAppSelector } from "../assets/hooks/useAppSelector";
+import { useAppSelector } from "../hooks/usAppSelector";
 
 const Sales = () => {
   const sales = useAppSelector(
