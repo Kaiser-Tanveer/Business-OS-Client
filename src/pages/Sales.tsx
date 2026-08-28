@@ -1,81 +1,121 @@
-import {
-  CalendarDays,
-  CircleDollarSign,
-  CreditCard,
-  Plus,
-  Receipt,
-  Search,
-  Wallet,
-} from "lucide-react";
-
+import { Plus, ShoppingCart } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import Button from "../components/ui/Button";
-import Card from "../components/ui/Card";
-
+import { useAppDispatch } from "../hooks/useAppDispatch";
 import { useAppSelector } from "../hooks/usAppSelector";
 
+import { addSale } from "../features/sales/salesSlice";
+
+import type {
+  PaymentStatus,
+  Sale,
+} from "../features/sales/salesTypes";
+
+import SaleForm from "../features/sales/components/SaleForm";
+
 const Sales = () => {
+  const dispatch = useAppDispatch();
+
   const sales = useAppSelector(
     (state) => state.sales.sales
   );
 
-  const [search, setSearch] = useState("");
+  const [showSaleForm, setShowSaleForm] =
+    useState(false);
 
-  const filteredSales = useMemo(() => {
-    const query = search
-      .trim()
-      .toLowerCase();
+  // =========================================
+  // STATISTICS
+  // =========================================
 
-    if (!query) {
-      return sales;
-    }
-
-    return sales.filter(
-      (sale) =>
-        sale.invoiceNumber
-          .toLowerCase()
-          .includes(query) ||
-        sale.customerName
-          ?.toLowerCase()
-          .includes(query)
+  const statistics = useMemo(() => {
+    const totalSales = sales.reduce(
+      (sum, sale) =>
+        sum + sale.total,
+      0
     );
-  }, [sales, search]);
 
-  const totalSales = useMemo(
-    () =>
-      sales.reduce(
-        (total, sale) =>
-          total + sale.total,
-        0
-      ),
-    [sales]
-  );
+    const totalPaid = sales.reduce(
+      (sum, sale) =>
+        sum + sale.paidAmount,
+      0
+    );
 
-  const totalPaid = useMemo(
-    () =>
-      sales.reduce(
-        (total, sale) =>
-          total + sale.paidAmount,
-        0
-      ),
-    [sales]
-  );
+    const totalDue = sales.reduce(
+      (sum, sale) =>
+        sum + sale.dueAmount,
+      0
+    );
 
-  const totalDue = useMemo(
-    () =>
-      sales.reduce(
-        (total, sale) =>
-          total + sale.dueAmount,
-        0
-      ),
-    [sales]
-  );
+    return {
+      totalSales,
+      totalPaid,
+      totalDue,
+      totalOrders: sales.length,
+    };
+  }, [sales]);
+
+  // =========================================
+  // CREATE SALE
+  // =========================================
+
+  const handleCreateSale = (data: {
+    customerName?: string;
+    items: Sale["items"];
+    subtotal: number;
+    discount: number;
+    total: number;
+    paidAmount: number;
+    dueAmount: number;
+    paymentStatus: PaymentStatus;
+  }) => {
+    const now =
+      new Date().toISOString();
+
+    const sale: Sale = {
+      id: crypto.randomUUID(),
+
+      invoiceNumber:
+        `INV-${Date.now()}`,
+
+      customerName:
+        data.customerName,
+
+      items: data.items,
+
+      subtotal:
+        data.subtotal,
+
+      discount:
+        data.discount,
+
+      total:
+        data.total,
+
+      paidAmount:
+        data.paidAmount,
+
+      dueAmount:
+        data.dueAmount,
+
+      paymentStatus:
+        data.paymentStatus,
+
+      createdAt: now,
+
+      updatedAt: now,
+    };
+
+    dispatch(addSale(sale));
+
+    setShowSaleForm(false);
+  };
 
   return (
     <div className="space-y-6">
 
-      {/* PAGE HEADER */}
+      {/* =====================================
+          PAGE HEADER
+      ===================================== */}
 
       <div
         className="
@@ -111,23 +151,46 @@ const Sales = () => {
               dark:text-slate-400
             "
           >
-            Manage your sales and
-            customer transactions.
+            Manage sales transactions
+            and customer payments.
           </p>
         </div>
 
-        <Button
+        <button
+          type="button"
+          onClick={() =>
+            setShowSaleForm(true)
+          }
           className="
-            w-full
-            sm:w-auto
+            inline-flex
+            h-10
+            items-center
+            justify-center
+            gap-2
+            rounded-lg
+            bg-indigo-600
+            px-4
+            text-sm
+            font-medium
+            text-white
+            transition
+
+            hover:bg-indigo-700
+
+            focus:outline-none
+            focus:ring-2
+            focus:ring-indigo-500/30
           "
         >
           <Plus size={17} />
+
           New Sale
-        </Button>
+        </button>
       </div>
 
-      {/* STATISTICS */}
+      {/* =====================================
+          STATISTICS
+      ===================================== */}
 
       <div
         className="
@@ -136,601 +199,464 @@ const Sales = () => {
           gap-4
 
           sm:grid-cols-2
-          xl:grid-cols-4
+          lg:grid-cols-4
         "
       >
 
         {/* TOTAL SALES */}
 
-        <Card className="p-5">
+        <div
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            p-5
 
-          <div className="
-            flex
-            items-center
-            justify-between
-          ">
+            dark:border-slate-800
+            dark:bg-slate-900
+          "
+        >
+          <p
+            className="
+              text-sm
+              text-slate-500
 
-            <div>
-              <p
-                className="
-                  text-sm
-                  text-slate-500
+              dark:text-slate-400
+            "
+          >
+            Total Sales
+          </p>
 
-                  dark:text-slate-400
-                "
-              >
-                Total Sales
-              </p>
+          <p
+            className="
+              mt-2
+              text-2xl
+              font-bold
+              text-slate-900
 
-              <p
-                className="
-                  mt-2
-                  text-2xl
-                  font-bold
-                  text-slate-900
-
-                  dark:text-white
-                "
-              >
-                ৳{totalSales.toLocaleString()}
-              </p>
-            </div>
-
-            <div
-              className="
-                rounded-xl
-                bg-indigo-50
-                p-3
-
-                dark:bg-indigo-500/10
-              "
-            >
-              <CircleDollarSign
-                size={21}
-                className="
-                  text-indigo-600
-
-                  dark:text-indigo-400
-                "
-              />
-            </div>
-
-          </div>
-
-        </Card>
+              dark:text-white
+            "
+          >
+            ৳
+            {statistics.totalSales.toLocaleString()}
+          </p>
+        </div>
 
         {/* PAID */}
 
-        <Card className="p-5">
+        <div
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            p-5
 
-          <div className="
-            flex
-            items-center
-            justify-between
-          ">
+            dark:border-slate-800
+            dark:bg-slate-900
+          "
+        >
+          <p
+            className="
+              text-sm
+              text-slate-500
 
-            <div>
-              <p
-                className="
-                  text-sm
-                  text-slate-500
+              dark:text-slate-400
+            "
+          >
+            Paid
+          </p>
 
-                  dark:text-slate-400
-                "
-              >
-                Paid
-              </p>
+          <p
+            className="
+              mt-2
+              text-2xl
+              font-bold
+              text-green-600
 
-              <p
-                className="
-                  mt-2
-                  text-2xl
-                  font-bold
-                  text-green-600
-
-                  dark:text-green-400
-                "
-              >
-                ৳{totalPaid.toLocaleString()}
-              </p>
-            </div>
-
-            <div
-              className="
-                rounded-xl
-                bg-green-50
-                p-3
-
-                dark:bg-green-500/10
-              "
-            >
-              <Wallet
-                size={21}
-                className="
-                  text-green-600
-
-                  dark:text-green-400
-                "
-              />
-            </div>
-
-          </div>
-
-        </Card>
+              dark:text-green-400
+            "
+          >
+            ৳
+            {statistics.totalPaid.toLocaleString()}
+          </p>
+        </div>
 
         {/* DUE */}
 
-        <Card className="p-5">
+        <div
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            p-5
 
-          <div className="
-            flex
-            items-center
-            justify-between
-          ">
+            dark:border-slate-800
+            dark:bg-slate-900
+          "
+        >
+          <p
+            className="
+              text-sm
+              text-slate-500
 
-            <div>
-              <p
-                className="
-                  text-sm
-                  text-slate-500
+              dark:text-slate-400
+            "
+          >
+            Due
+          </p>
 
-                  dark:text-slate-400
-                "
-              >
-                Due
-              </p>
+          <p
+            className="
+              mt-2
+              text-2xl
+              font-bold
+              text-red-600
 
-              <p
-                className="
-                  mt-2
-                  text-2xl
-                  font-bold
-                  text-red-600
-
-                  dark:text-red-400
-                "
-              >
-                ৳{totalDue.toLocaleString()}
-              </p>
-            </div>
-
-            <div
-              className="
-                rounded-xl
-                bg-red-50
-                p-3
-
-                dark:bg-red-500/10
-              "
-            >
-              <CreditCard
-                size={21}
-                className="
-                  text-red-600
-
-                  dark:text-red-400
-                "
-              />
-            </div>
-
-          </div>
-
-        </Card>
+              dark:text-red-400
+            "
+          >
+            ৳
+            {statistics.totalDue.toLocaleString()}
+          </p>
+        </div>
 
         {/* ORDERS */}
 
-        <Card className="p-5">
+        <div
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            p-5
 
-          <div className="
-            flex
-            items-center
-            justify-between
-          ">
+            dark:border-slate-800
+            dark:bg-slate-900
+          "
+        >
+          <p
+            className="
+              text-sm
+              text-slate-500
 
-            <div>
-              <p
-                className="
-                  text-sm
-                  text-slate-500
+              dark:text-slate-400
+            "
+          >
+            Total Orders
+          </p>
 
-                  dark:text-slate-400
-                "
-              >
-                Total Orders
-              </p>
+          <p
+            className="
+              mt-2
+              text-2xl
+              font-bold
+              text-slate-900
 
-              <p
-                className="
-                  mt-2
-                  text-2xl
-                  font-bold
-                  text-slate-900
-
-                  dark:text-white
-                "
-              >
-                {sales.length}
-              </p>
-            </div>
-
-            <div
-              className="
-                rounded-xl
-                bg-amber-50
-                p-3
-
-                dark:bg-amber-500/10
-              "
-            >
-              <Receipt
-                size={21}
-                className="
-                  text-amber-600
-
-                  dark:text-amber-400
-                "
-              />
-            </div>
-
-          </div>
-
-        </Card>
+              dark:text-white
+            "
+          >
+            {statistics.totalOrders}
+          </p>
+        </div>
 
       </div>
 
-      {/* SALES TABLE */}
+      {/* =====================================
+          SALES TABLE
+      ===================================== */}
 
-      <Card className="overflow-hidden">
+      <div
+        className="
+          overflow-hidden
+          rounded-xl
+          border
+          border-slate-200
+          bg-white
+
+          dark:border-slate-800
+          dark:bg-slate-900
+        "
+      >
 
         {/* TABLE HEADER */}
 
         <div
           className="
-            flex
-            flex-col
-            gap-4
             border-b
             border-slate-200
-            p-5
+            px-5
+            py-4
 
             dark:border-slate-800
-
-            lg:flex-row
-            lg:items-center
-            lg:justify-between
           "
         >
+          <h2
+            className="
+              text-sm
+              font-semibold
+              text-slate-900
 
-          <div>
-            <h2
+              dark:text-white
+            "
+          >
+            Sales Transactions
+          </h2>
+        </div>
+
+        {/* EMPTY STATE */}
+
+        {sales.length === 0 ? (
+          <div
+            className="
+              flex
+              flex-col
+              items-center
+              justify-center
+              px-6
+              py-16
+              text-center
+            "
+          >
+            <div
               className="
-                text-base
+                flex
+                h-12
+                w-12
+                items-center
+                justify-center
+                rounded-full
+                bg-slate-100
+                text-slate-500
+
+                dark:bg-slate-800
+                dark:text-slate-400
+              "
+            >
+              <ShoppingCart
+                size={22}
+              />
+            </div>
+
+            <h3
+              className="
+                mt-4
+                text-sm
                 font-semibold
                 text-slate-900
 
                 dark:text-white
               "
             >
-              Sales Transactions
-            </h2>
+              No sales found
+            </h3>
 
             <p
               className="
                 mt-1
+                max-w-sm
                 text-sm
                 text-slate-500
 
                 dark:text-slate-400
               "
             >
-              View and manage your
-              recent sales.
+              Start by creating your
+              first sale transaction.
             </p>
-          </div>
 
-          {/* SEARCH */}
-
-          <div
-            className="
-              relative
-              w-full
-
-              lg:w-72
-            "
-          >
-            <Search
-              size={17}
-              className="
-                pointer-events-none
-                absolute
-                left-3
-                top-1/2
-                -translate-y-1/2
-                text-slate-400
-              "
-            />
-
-            <input
-              type="text"
-              value={search}
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
+            <button
+              type="button"
+              onClick={() =>
+                setShowSaleForm(true)
               }
-              placeholder="Search invoice or customer..."
               className="
-                h-10
-                w-full
+                mt-5
+                inline-flex
+                items-center
+                gap-2
                 rounded-lg
-                border
-                border-slate-300
-                bg-white
-                pl-9
-                pr-3
+                bg-indigo-600
+                px-4
+                py-2
                 text-sm
-                text-slate-900
-                outline-none
+                font-medium
+                text-white
 
-                placeholder:text-slate-400
-
-                focus:border-indigo-500
-                focus:ring-2
-                focus:ring-indigo-500/20
-
-                dark:border-slate-700
-                dark:bg-slate-900
-                dark:text-white
+                hover:bg-indigo-700
               "
-            />
+            >
+              <Plus size={16} />
+
+              Create Sale
+            </button>
           </div>
+        ) : (
+          <>
+            {/* DESKTOP TABLE */}
 
-        </div>
+            <div className="hidden overflow-x-auto md:block">
 
-        {/* DESKTOP TABLE */}
+              <table className="w-full">
 
-        <div className="hidden overflow-x-auto md:block">
-
-          <table className="w-full">
-
-            <thead>
-
-              <tr
-                className="
-                  border-b
-                  border-slate-200
-                  bg-slate-50
-
-                  dark:border-slate-800
-                  dark:bg-slate-900/50
-                "
-              >
-
-                <th className="
-                  px-5
-                  py-3
-                  text-left
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-slate-500
-
-                  dark:text-slate-400
-                ">
-                  Invoice
-                </th>
-
-                <th className="
-                  px-5
-                  py-3
-                  text-left
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-slate-500
-
-                  dark:text-slate-400
-                ">
-                  Customer
-                </th>
-
-                <th className="
-                  px-5
-                  py-3
-                  text-left
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-slate-500
-
-                  dark:text-slate-400
-                ">
-                  Items
-                </th>
-
-                <th className="
-                  px-5
-                  py-3
-                  text-right
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-slate-500
-
-                  dark:text-slate-400
-                ">
-                  Total
-                </th>
-
-                <th className="
-                  px-5
-                  py-3
-                  text-center
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-slate-500
-
-                  dark:text-slate-400
-                ">
-                  Payment
-                </th>
-
-                <th className="
-                  px-5
-                  py-3
-                  text-left
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-slate-500
-
-                  dark:text-slate-400
-                ">
-                  Date
-                </th>
-
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              {filteredSales.length ===
-              0 ? (
-                <tr>
-
-                  <td
-                    colSpan={6}
+                <thead>
+                  <tr
                     className="
-                      px-5
-                      py-16
-                      text-center
+                      border-b
+                      border-slate-200
+                      bg-slate-50
+
+                      dark:border-slate-800
+                      dark:bg-slate-950/50
                     "
                   >
+                    <th className="
+                      px-5
+                      py-3
+                      text-left
+                      text-xs
+                      font-semibold
+                      text-slate-500
 
-                    <Receipt
-                      size={40}
-                      className="
-                        mx-auto
-                        text-slate-300
+                      dark:text-slate-400
+                    ">
+                      Invoice
+                    </th>
 
-                        dark:text-slate-700
-                      "
-                    />
+                    <th className="
+                      px-5
+                      py-3
+                      text-left
+                      text-xs
+                      font-semibold
+                      text-slate-500
 
-                    <p
-                      className="
-                        mt-3
-                        text-sm
-                        font-medium
-                        text-slate-600
+                      dark:text-slate-400
+                    ">
+                      Customer
+                    </th>
 
-                        dark:text-slate-300
-                      "
-                    >
-                      No sales found
-                    </p>
+                    <th className="
+                      px-5
+                      py-3
+                      text-center
+                      text-xs
+                      font-semibold
+                      text-slate-500
 
-                    <p
-                      className="
-                        mt-1
-                        text-xs
-                        text-slate-400
-                      "
-                    >
-                      Create your first
-                      sale to get started.
-                    </p>
+                      dark:text-slate-400
+                    ">
+                      Items
+                    </th>
 
-                  </td>
+                    <th className="
+                      px-5
+                      py-3
+                      text-right
+                      text-xs
+                      font-semibold
+                      text-slate-500
 
-                </tr>
-              ) : (
-                filteredSales.map(
-                  (sale) => (
-                    <tr
-                      key={sale.id}
-                      className="
-                        border-b
-                        border-slate-100
-                        transition-colors
+                      dark:text-slate-400
+                    ">
+                      Total
+                    </th>
 
-                        hover:bg-slate-50
+                    <th className="
+                      px-5
+                      py-3
+                      text-right
+                      text-xs
+                      font-semibold
+                      text-slate-500
 
-                        dark:border-slate-800
-                        dark:hover:bg-slate-900/50
-                      "
-                    >
+                      dark:text-slate-400
+                    ">
+                      Paid
+                    </th>
 
-                      {/* INVOICE */}
+                    <th className="
+                      px-5
+                      py-3
+                      text-right
+                      text-xs
+                      font-semibold
+                      text-slate-500
 
-                      <td
+                      dark:text-slate-400
+                    ">
+                      Due
+                    </th>
+
+                    <th className="
+                      px-5
+                      py-3
+                      text-center
+                      text-xs
+                      font-semibold
+                      text-slate-500
+
+                      dark:text-slate-400
+                    ">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  {sales.map(
+                    (sale) => (
+                      <tr
+                        key={sale.id}
                         className="
+                          border-b
+                          border-slate-100
+                          last:border-0
+
+                          dark:border-slate-800
+                        "
+                      >
+
+                        <td className="
                           px-5
                           py-4
                           text-sm
-                          font-semibold
-                          text-indigo-600
+                          font-medium
+                          text-slate-900
 
-                          dark:text-indigo-400
-                        "
-                      >
-                        {sale.invoiceNumber}
-                      </td>
+                          dark:text-white
+                        ">
+                          {sale.invoiceNumber}
+                        </td>
 
-                      {/* CUSTOMER */}
+                        <td className="
+                          px-5
+                          py-4
+                          text-sm
+                          text-slate-600
 
-                      <td className="
-                        px-5
-                        py-4
-                      ">
-
-                        <p
-                          className="
-                            text-sm
-                            font-medium
-                            text-slate-900
-
-                            dark:text-white
-                          "
-                        >
+                          dark:text-slate-300
+                        ">
                           {sale.customerName ||
                             "Walk-in Customer"}
-                        </p>
+                        </td>
 
-                      </td>
-
-                      {/* ITEMS */}
-
-                      <td
-                        className="
+                        <td className="
                           px-5
                           py-4
+                          text-center
                           text-sm
-                          text-slate-500
+                          text-slate-600
 
-                          dark:text-slate-400
-                        "
-                      >
-                        {sale.items.length}
-                        {" "}
-                        {sale.items.length ===
-                        1
-                          ? "item"
-                          : "items"}
-                      </td>
+                          dark:text-slate-300
+                        ">
+                          {sale.items.length}
+                        </td>
 
-                      {/* TOTAL */}
-
-                      <td
-                        className="
+                        <td className="
                           px-5
                           py-4
                           text-right
@@ -739,278 +665,270 @@ const Sales = () => {
                           text-slate-900
 
                           dark:text-white
-                        "
-                      >
-                        ৳{sale.total.toLocaleString()}
-                      </td>
+                        ">
+                          ৳
+                          {sale.total.toLocaleString()}
+                        </td>
 
-                      {/* PAYMENT */}
-
-                      <td className="
-                        px-5
-                        py-4
-                        text-center
-                      ">
-
-                        <span
-                          className={`
-                            inline-flex
-                            rounded-full
-                            px-2.5
-                            py-1
-                            text-xs
-                            font-semibold
-
-                            ${
-                              sale.paymentStatus ===
-                              "PAID"
-                                ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
-                                : sale.paymentStatus ===
-                                  "PARTIAL"
-                                ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                                : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
-                            }
-                          `}
-                        >
-                          {sale.paymentStatus}
-                        </span>
-
-                      </td>
-
-                      {/* DATE */}
-
-                      <td
-                        className="
-                          whitespace-nowrap
+                        <td className="
                           px-5
                           py-4
+                          text-right
                           text-sm
+                          text-green-600
+
+                          dark:text-green-400
+                        ">
+                          ৳
+                          {sale.paidAmount.toLocaleString()}
+                        </td>
+
+                        <td className="
+                          px-5
+                          py-4
+                          text-right
+                          text-sm
+                          text-red-600
+
+                          dark:text-red-400
+                        ">
+                          ৳
+                          {sale.dueAmount.toLocaleString()}
+                        </td>
+
+                        <td className="
+                          px-5
+                          py-4
+                          text-center
+                        ">
+                          <span
+                            className={`
+                              inline-flex
+                              rounded-full
+                              px-2.5
+                              py-1
+                              text-xs
+                              font-semibold
+
+                              ${
+                                sale.paymentStatus ===
+                                "PAID"
+                                  ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                                  : sale.paymentStatus ===
+                                    "PARTIAL"
+                                  ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                                  : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                              }
+                            `}
+                          >
+                            {
+                              sale.paymentStatus
+                            }
+                          </span>
+                        </td>
+
+                      </tr>
+                    )
+                  )}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+            {/* MOBILE CARDS */}
+
+            <div
+              className="
+                divide-y
+                divide-slate-200
+
+                dark:divide-slate-800
+
+                md:hidden
+              "
+            >
+              {sales.map(
+                (sale) => (
+                  <div
+                    key={sale.id}
+                    className="p-5"
+                  >
+                    <div className="
+                      flex
+                      items-start
+                      justify-between
+                      gap-3
+                    ">
+                      <div>
+                        <p className="
+                          text-sm
+                          font-semibold
+                          text-slate-900
+
+                          dark:text-white
+                        ">
+                          {sale.invoiceNumber}
+                        </p>
+
+                        <p className="
+                          mt-1
+                          text-xs
                           text-slate-500
 
                           dark:text-slate-400
-                        "
-                      >
-                        {new Intl.DateTimeFormat(
-                          "en-BD",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        ).format(
-                          new Date(
-                            sale.createdAt
-                          )
-                        )}
-                      </td>
+                        ">
+                          {sale.customerName ||
+                            "Walk-in Customer"}
+                        </p>
+                      </div>
 
-                    </tr>
-                  )
+                      <span
+                        className={`
+                          rounded-full
+                          px-2.5
+                          py-1
+                          text-xs
+                          font-semibold
+
+                          ${
+                            sale.paymentStatus ===
+                            "PAID"
+                              ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                              : sale.paymentStatus ===
+                                "PARTIAL"
+                              ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                              : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                          }
+                        `}
+                      >
+                        {sale.paymentStatus}
+                      </span>
+                    </div>
+
+                    <div className="
+                      mt-4
+                      grid
+                      grid-cols-2
+                      gap-3
+                    ">
+
+                      <div>
+                        <p className="
+                          text-xs
+                          text-slate-500
+
+                          dark:text-slate-400
+                        ">
+                          Total
+                        </p>
+
+                        <p className="
+                          mt-1
+                          text-sm
+                          font-semibold
+                          text-slate-900
+
+                          dark:text-white
+                        ">
+                          ৳
+                          {sale.total.toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="
+                          text-xs
+                          text-slate-500
+
+                          dark:text-slate-400
+                        ">
+                          Items
+                        </p>
+
+                        <p className="
+                          mt-1
+                          text-sm
+                          font-semibold
+                          text-slate-900
+
+                          dark:text-white
+                        ">
+                          {sale.items.length}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="
+                          text-xs
+                          text-slate-500
+
+                          dark:text-slate-400
+                        ">
+                          Paid
+                        </p>
+
+                        <p className="
+                          mt-1
+                          text-sm
+                          font-semibold
+                          text-green-600
+
+                          dark:text-green-400
+                        ">
+                          ৳
+                          {sale.paidAmount.toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="
+                          text-xs
+                          text-slate-500
+
+                          dark:text-slate-400
+                        ">
+                          Due
+                        </p>
+
+                        <p className="
+                          mt-1
+                          text-sm
+                          font-semibold
+                          text-red-600
+
+                          dark:text-red-400
+                        ">
+                          ৳
+                          {sale.dueAmount.toLocaleString()}
+                        </p>
+                      </div>
+
+                    </div>
+                  </div>
                 )
               )}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-        {/* MOBILE */}
-
-        <div className="
-          divide-y
-          divide-slate-100
-
-          dark:divide-slate-800
-
-          md:hidden
-        ">
-
-          {filteredSales.length ===
-          0 ? (
-            <div className="
-              px-5
-              py-16
-              text-center
-            ">
-
-              <Receipt
-                size={40}
-                className="
-                  mx-auto
-                  text-slate-300
-
-                  dark:text-slate-700
-                "
-              />
-
-              <p className="
-                mt-3
-                text-sm
-                font-medium
-                text-slate-600
-
-                dark:text-slate-300
-              ">
-                No sales found
-              </p>
-
             </div>
-          ) : (
-            filteredSales.map(
-              (sale) => (
-                <div
-                  key={sale.id}
-                  className="
-                    space-y-4
-                    p-5
-                  "
-                >
+          </>
+        )}
 
-                  <div className="
-                    flex
-                    items-start
-                    justify-between
-                    gap-3
-                  ">
+      </div>
 
-                    <div>
+      {/* =====================================
+          SALE FORM
+      ===================================== */}
 
-                      <p className="
-                        text-sm
-                        font-semibold
-                        text-indigo-600
-
-                        dark:text-indigo-400
-                      ">
-                        {sale.invoiceNumber}
-                      </p>
-
-                      <p className="
-                        mt-1
-                        text-sm
-                        font-medium
-                        text-slate-900
-
-                        dark:text-white
-                      ">
-                        {sale.customerName ||
-                          "Walk-in Customer"}
-                      </p>
-
-                    </div>
-
-                    <span
-                      className={`
-                        rounded-full
-                        px-2.5
-                        py-1
-                        text-xs
-                        font-semibold
-
-                        ${
-                          sale.paymentStatus ===
-                          "PAID"
-                            ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
-                            : sale.paymentStatus ===
-                              "PARTIAL"
-                            ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                            : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
-                        }
-                      `}
-                    >
-                      {sale.paymentStatus}
-                    </span>
-
-                  </div>
-
-                  <div className="
-                    grid
-                    grid-cols-2
-                    gap-4
-                  ">
-
-                    <div>
-
-                      <p className="
-                        text-xs
-                        text-slate-400
-                      ">
-                        Total
-                      </p>
-
-                      <p className="
-                        mt-1
-                        text-sm
-                        font-semibold
-                        text-slate-900
-
-                        dark:text-white
-                      ">
-                        ৳{sale.total.toLocaleString()}
-                      </p>
-
-                    </div>
-
-                    <div>
-
-                      <p className="
-                        text-xs
-                        text-slate-400
-                      ">
-                        Items
-                      </p>
-
-                      <p className="
-                        mt-1
-                        text-sm
-                        font-medium
-                        text-slate-700
-
-                        dark:text-slate-300
-                      ">
-                        {sale.items.length}
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                  <div className="
-                    flex
-                    items-center
-                    gap-2
-                    text-xs
-                    text-slate-400
-                  ">
-
-                    <CalendarDays
-                      size={14}
-                    />
-
-                    {new Intl.DateTimeFormat(
-                      "en-BD",
-                      {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      }
-                    ).format(
-                      new Date(
-                        sale.createdAt
-                      )
-                    )}
-
-                  </div>
-
-                </div>
-              )
-            )
-          )}
-
-        </div>
-
-      </Card>
+      {showSaleForm && (
+        <SaleForm
+          onClose={() =>
+            setShowSaleForm(false)
+          }
+          onSubmit={
+            handleCreateSale
+          }
+        />
+      )}
 
     </div>
   );

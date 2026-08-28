@@ -15,9 +15,25 @@ const initialState: SalesState = {
 
 const salesSlice = createSlice({
   name: "sales",
+
   initialState,
 
   reducers: {
+    // =========================================
+    // SET SALES
+    // =========================================
+
+    setSales: (
+      state,
+      action: PayloadAction<Sale[]>
+    ) => {
+      state.sales = action.payload;
+    },
+
+    // =========================================
+    // ADD SALE
+    // =========================================
+
     addSale: (
       state,
       action: PayloadAction<Sale>
@@ -25,33 +41,45 @@ const salesSlice = createSlice({
       state.sales.unshift(action.payload);
     },
 
+    // =========================================
+    // UPDATE SALE
+    // =========================================
+
     updateSale: (
       state,
       action: PayloadAction<Sale>
     ) => {
-      const index = state.sales.findIndex(
-        (sale) =>
-          sale.id === action.payload.id
-      );
+      const index =
+        state.sales.findIndex(
+          (sale) =>
+            sale.id === action.payload.id
+        );
 
       if (index !== -1) {
-        state.sales[index] = action.payload;
+        state.sales[index] =
+          action.payload;
       }
     },
+
+    // =========================================
+    // DELETE SALE
+    // =========================================
 
     deleteSale: (
       state,
       action: PayloadAction<string>
     ) => {
-      state.sales = state.sales.filter(
-        (sale) =>
-          sale.id !== action.payload
-      );
+      state.sales =
+        state.sales.filter(
+          (sale) =>
+            sale.id !== action.payload
+        );
     },
   },
 });
 
 export const {
+  setSales,
   addSale,
   updateSale,
   deleteSale,
