@@ -1,10 +1,13 @@
-import { configureStore } from "@reduxjs/toolkit";
-import rootReducer from "./rootReducer";
+import { combineReducers } from "@reduxjs/toolkit";
 
-export const store = configureStore({
-  reducer: rootReducer,
-  devTools: import.meta.env.DEV,
+import productReducer from "../features/products/productSlice";
+import inventoryReducer from "../features/inventory/inventorySlice";
+import salesReducer from "../features/sales/salesSlice";
+
+const rootReducer = combineReducers({
+  products: productReducer,
+  inventory: inventoryReducer,
+  sales: salesReducer,
 });
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export default rootReducer;
