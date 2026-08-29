@@ -12,6 +12,7 @@ import type {
 } from "../features/sales/salesTypes";
 
 import SaleForm from "../features/sales/components/SaleForm";
+import { updateProductStock } from "../features/products/productSlice";
 
 const Sales = () => {
   const dispatch = useAppDispatch();
@@ -59,56 +60,128 @@ const Sales = () => {
   // =========================================
 
   const handleCreateSale = (data: {
-    customerName?: string;
-    items: Sale["items"];
-    subtotal: number;
-    discount: number;
-    total: number;
-    paidAmount: number;
-    dueAmount: number;
-    paymentStatus: PaymentStatus;
-  }) => {
-    const now =
-      new Date().toISOString();
+  customerName?: string;
+  items: Sale["items"];
+  subtotal: number;
+  discount: number;
+  total: number;
+  paidAmount: number;
+  dueAmount: number;
+  paymentStatus: PaymentStatus;
+}) => {
+  // =========================================
+  // FINAL STOCK VALIDATION
+  // =========================================
 
-    const sale: Sale = {
-      id: crypto.randomUUID(),
+  const products = useAppSelector(
+    (state) => state.products.products
+  );
 
-      invoiceNumber:
-        `INV-${Date.now()}`,
+  for (const item of data.items) {
+    const product = products.find(
+      (product) =>
+        product.id === item.productId
+    );
 
-      customerName:
-        data.customerName,
+    if (!product) {
+      alert(
+        `Product "${item.productName}" no longer exists.`
+      );
 
-      items: data.items,
+      return;
+    }
 
-      subtotal:
-        data.subtotal,
+    if (
+      item.quantity >
+      product.stockQuantity
+    ) {
+      alert(
+        `Insufficient stock for "${product.name}". Available: ${product.stockQuantity} ${product.unit}.`
+      );
 
-      discount:
-        data.discount,
+      return;
+    }
+  }
 
-      total:
-        data.total,
+  // =========================================
+  // CREATE SALE
+  // =========================================
 
-      paidAmount:
-        data.paidAmount,
+  const now =
+    new Date().toISOString();
 
-      dueAmount:
-        data.dueAmount,
+  const sale: Sale = {
+    id: crypto.randomUUID(),
 
-      paymentStatus:
-        data.paymentStatus,
+    invoiceNumber:
+      `INV-${Date.now()}`,
 
-      createdAt: now,
+    customerName:
+      data.customerName,
 
-      updatedAt: now,
-    };
+    items: data.items,
 
-    dispatch(addSale(sale));
+    subtotal:
+      data.subtotal,
 
-    setShowSaleForm(false);
+    discount:
+      data.discount,
+
+    total:
+      data.total,
+
+    paidAmount:
+      data.paidAmount,
+
+    dueAmount:
+      data.dueAmount,
+
+    paymentStatus:
+      data.paymentStatus,
+
+    createdAt: now,
+
+    updatedAt: now,
   };
+
+  // =========================================
+  // SAVE SALE
+  // =========================================
+
+  dispatch(addSale(sale));
+
+  // =========================================
+  // REDUCE STOCK
+  // =========================================
+
+  data.items.forEach((item) => {
+    const product = products.find(
+      (product) =>
+        product.id === item.productId
+    );
+
+    if (!product) {
+      return;
+    }
+
+    const newStock =
+      product.stockQuantity -
+      item.quantity;
+
+    dispatch(
+      updateProductStock({
+        productId: product.id,
+        quantity: newStock,
+      })
+    );
+  });
+
+  // =========================================
+  // CLOSE FORM
+  // =========================================
+
+  setShowSaleForm(false);
+};
 
   return (
     <div className="space-y-6">
