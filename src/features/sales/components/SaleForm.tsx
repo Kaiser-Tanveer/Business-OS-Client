@@ -1,18 +1,16 @@
-import {
-  Minus,
-  Plus,
-  Trash2,
-  X,
-} from "lucide-react";
-
+import { Plus, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useAppSelector } from "../../../hooks/usAppSelector";
 
-import type { SaleItem } from "../salesTypes";
+import type {
+  PaymentStatus,
+  SaleItem,
+} from "../salesTypes";
 
 interface SaleFormProps {
   onClose: () => void;
+
   onSubmit: (data: {
     customerName?: string;
     items: SaleItem[];
@@ -21,20 +19,30 @@ interface SaleFormProps {
     total: number;
     paidAmount: number;
     dueAmount: number;
-    paymentStatus:
-      | "PAID"
-      | "PARTIAL"
-      | "DUE";
+    paymentStatus: PaymentStatus;
   }) => void;
+}
+
+interface FormItem {
+  productId: string;
+  quantity: number;
 }
 
 const SaleForm = ({
   onClose,
   onSubmit,
 }: SaleFormProps) => {
+  // =========================================
+  // PRODUCTS FROM REDUX
+  // =========================================
+
   const products = useAppSelector(
     (state) => state.products.products
   );
+
+  // =========================================
+  // FORM STATE
+  // =========================================
 
   const [customerName, setCustomerName] =
     useState("");
@@ -45,14 +53,18 @@ const SaleForm = ({
   const [quantity, setQuantity] =
     useState(1);
 
-  const [items, setItems] =
-    useState<SaleItem[]>([]);
-
   const [discount, setDiscount] =
     useState(0);
 
   const [paidAmount, setPaidAmount] =
     useState(0);
+
+  const [items, setItems] =
+    useState<FormItem[]>([]);
+
+  // =========================================
+  // SELECTED PRODUCT
+  // =========================================
 
   const selectedProduct = products.find(
     (product) =>
@@ -60,74 +72,26 @@ const SaleForm = ({
   );
 
   // =========================================
-  // CALCULATIONS
-  // =========================================
-
-  const subtotal = useMemo(() => {
-    return items.reduce(
-      (total, item) =>
-        total + item.total,
-      0
-    );
-  }, [items]);
-
-  const total = Math.max(
-    subtotal - discount,
-    0
-  );
-
-  const dueAmount = Math.max(
-    total - paidAmount,
-    0
-  );
-
-  const paymentStatus =
-    paidAmount >= total && total > 0
-      ? "PAID"
-      : paidAmount > 0
-      ? "PARTIAL"
-      : "DUE";
-
-  // =========================================
   // ADD PRODUCT
   // =========================================
 
   const handleAddProduct = () => {
     if (!selectedProduct) {
-      return;
-    }
-
-    if (selectedProduct.status !== "active") {
-      alert(
-        "This product is inactive and cannot be sold."
-      );
+      alert("Please select a product.");
 
       return;
     }
 
     if (quantity <= 0) {
       alert(
-        "Quantity must be greater than zero."
+        "Quantity must be greater than 0."
       );
 
       return;
     }
 
-    const existingItem =
-      items.find(
-        (item) =>
-          item.productId ===
-          selectedProduct.id
-      );
-
-    const existingQuantity =
-      existingItem?.quantity ?? 0;
-
-    const newQuantity =
-      existingQuantity + quantity;
-
     if (
-      newQuantity >
+      quantity >
       selectedProduct.stockQuantity
     ) {
       alert(
@@ -137,118 +101,165 @@ const SaleForm = ({
       return;
     }
 
+    const existingItem = items.find(
+      (item) =>
+        item.productId ===
+        selectedProduct.id
+    );
+
     if (existingItem) {
+      const newQuantity =
+        existingItem.quantity +
+        quantity;
+
+      if (
+        newQuantity >
+        selectedProduct.stockQuantity
+      ) {
+        alert(
+          `Only ${selectedProduct.stockQuantity} ${selectedProduct.unit} available in stock.`
+        );
+
+        return;
+      }
+
       setItems(
         items.map((item) =>
           item.productId ===
           selectedProduct.id
             ? {
                 ...item,
-                quantity: newQuantity,
-                total:
-                  newQuantity *
-                  item.unitPrice,
+                quantity:
+                  newQuantity,
               }
             : item
         )
       );
     } else {
-      const newItem: SaleItem = {
-        productId:
-          selectedProduct.id,
-
-        productName:
-          selectedProduct.name,
-
-        quantity,
-
-        unitPrice:
-          selectedProduct.sellingPrice,
-
-        total:
-          quantity *
-          selectedProduct.sellingPrice,
-      };
-
       setItems([
         ...items,
-        newItem,
+        {
+          productId:
+            selectedProduct.id,
+
+          quantity,
+        },
       ]);
     }
 
     setSelectedProductId("");
+
     setQuantity(1);
-  };
-
-  // =========================================
-  // UPDATE QUANTITY
-  // =========================================
-
-  const handleQuantityChange = (
-    productId: string,
-    newQuantity: number
-  ) => {
-    const product = products.find(
-      (item) =>
-        item.id === productId
-    );
-
-    if (!product) {
-      return;
-    }
-
-    if (newQuantity <= 0) {
-      handleRemoveItem(productId);
-      return;
-    }
-
-    if (
-      newQuantity >
-      product.stockQuantity
-    ) {
-      alert(
-        `Only ${product.stockQuantity} ${product.unit} available in stock.`
-      );
-
-      return;
-    }
-
-    setItems(
-      items.map((item) =>
-        item.productId === productId
-          ? {
-              ...item,
-              quantity: newQuantity,
-              total:
-                newQuantity *
-                item.unitPrice,
-            }
-          : item
-      )
-    );
   };
 
   // =========================================
   // REMOVE PRODUCT
   // =========================================
 
-  const handleRemoveItem = (
+  const handleRemoveProduct = (
     productId: string
   ) => {
     setItems(
       items.filter(
         (item) =>
-          item.productId !== productId
+          item.productId !==
+          productId
       )
     );
   };
 
   // =========================================
-  // SUBMIT SALE
+  // CALCULATE SALE ITEMS
+  // =========================================
+
+  const saleItems: SaleItem[] =
+    useMemo(() => {
+      return items
+        .map((item) => {
+          const product =
+            products.find(
+              (product) =>
+                product.id ===
+                item.productId
+            );
+
+          if (!product) {
+            return null;
+          }
+
+          return {
+            productId:
+              product.id,
+
+            productName:
+              product.name,
+
+            quantity:
+              item.quantity,
+
+            unitPrice:
+              product.sellingPrice,
+
+            total:
+              item.quantity *
+              product.sellingPrice,
+          };
+        })
+        .filter(
+          (
+            item
+          ): item is SaleItem =>
+            item !== null
+        );
+    }, [items, products]);
+
+  // =========================================
+  // SUBTOTAL
+  // =========================================
+
+  const subtotal = useMemo(() => {
+    return saleItems.reduce(
+      (sum, item) =>
+        sum + item.total,
+      0
+    );
+  }, [saleItems]);
+
+  // =========================================
+  // TOTAL
+  // =========================================
+
+  const total = Math.max(
+    0,
+    subtotal - discount
+  );
+
+  // =========================================
+  // DUE
+  // =========================================
+
+  const dueAmount = Math.max(
+    0,
+    total - paidAmount
+  );
+
+  // =========================================
+  // PAYMENT STATUS
+  // =========================================
+
+  const paymentStatus: PaymentStatus =
+    paidAmount >= total && total > 0
+      ? "PAID"
+      : paidAmount > 0
+      ? "PARTIAL"
+      : "DUE";
+
+  // =========================================
+  // SUBMIT
   // =========================================
 
   const handleSubmit = () => {
-    if (items.length === 0) {
+    if (saleItems.length === 0) {
       alert(
         "Please add at least one product."
       );
@@ -282,7 +293,7 @@ const SaleForm = ({
 
     if (paidAmount > total) {
       alert(
-        "Paid amount cannot be greater than the total."
+        "Paid amount cannot be greater than total."
       );
 
       return;
@@ -293,7 +304,7 @@ const SaleForm = ({
         customerName.trim() ||
         undefined,
 
-      items,
+      items: saleItems,
 
       subtotal,
 
@@ -322,13 +333,21 @@ const SaleForm = ({
         p-4
         backdrop-blur-sm
       "
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose();
+        }
+      }}
     >
       <div
         className="
           flex
-          max-h-[95dvh]
+          max-h-[92dvh]
           w-full
-          max-w-4xl
+          max-w-3xl
           flex-col
           overflow-hidden
           rounded-2xl
@@ -341,9 +360,9 @@ const SaleForm = ({
           dark:bg-slate-950
         "
       >
-        {/* =========================================
+        {/* =====================================
             HEADER
-        ========================================= */}
+        ===================================== */}
 
         <div
           className="
@@ -357,15 +376,13 @@ const SaleForm = ({
             py-4
 
             dark:border-slate-800
-
-            sm:px-6
           "
         >
           <div>
             <h2
               className="
                 text-lg
-                font-semibold
+                font-bold
                 text-slate-900
 
                 dark:text-white
@@ -409,9 +426,9 @@ const SaleForm = ({
           </button>
         </div>
 
-        {/* =========================================
+        {/* =====================================
             BODY
-        ========================================= */}
+        ===================================== */}
 
         <div
           className="
@@ -424,11 +441,12 @@ const SaleForm = ({
         >
           <div className="space-y-6">
 
-            {/* CUSTOMER */}
+            {/* =================================
+                CUSTOMER
+            ================================= */}
 
             <div>
               <label
-                htmlFor="customerName"
                 className="
                   mb-2
                   block
@@ -439,11 +457,10 @@ const SaleForm = ({
                   dark:text-slate-300
                 "
               >
-                Customer
+                Customer Name
               </label>
 
               <input
-                id="customerName"
                 type="text"
                 value={customerName}
                 onChange={(event) =>
@@ -453,7 +470,7 @@ const SaleForm = ({
                 }
                 placeholder="Walk-in Customer"
                 className="
-                  h-11
+                  h-10
                   w-full
                   rounded-lg
                   border
@@ -463,6 +480,7 @@ const SaleForm = ({
                   text-sm
                   text-slate-900
                   outline-none
+                  transition
 
                   placeholder:text-slate-400
 
@@ -473,29 +491,19 @@ const SaleForm = ({
                   dark:border-slate-700
                   dark:bg-slate-900
                   dark:text-white
+                  dark:placeholder:text-slate-500
                 "
               />
             </div>
 
-            {/* =====================================
-                PRODUCT SELECTOR
-            ===================================== */}
+            {/* =================================
+                ADD PRODUCT
+            ================================= */}
 
-            <div
-              className="
-                rounded-xl
-                border
-                border-slate-200
-                bg-slate-50
-                p-4
-
-                dark:border-slate-800
-                dark:bg-slate-900/50
-              "
-            >
+            <div>
               <h3
                 className="
-                  mb-4
+                  mb-3
                   text-sm
                   font-semibold
                   text-slate-900
@@ -503,7 +511,7 @@ const SaleForm = ({
                   dark:text-white
                 "
               >
-                Add Products
+                Add Product
               </h3>
 
               <div
@@ -512,18 +520,23 @@ const SaleForm = ({
                   grid-cols-1
                   gap-3
 
-                  md:grid-cols-[1fr_140px_auto]
+                  sm:grid-cols-[1fr_120px_auto]
                 "
               >
+                {/* PRODUCT */}
+
                 <select
-                  value={selectedProductId}
+                  value={
+                    selectedProductId
+                  }
                   onChange={(event) =>
                     setSelectedProductId(
                       event.target.value
                     )
                   }
                   className="
-                    h-11
+                    h-10
+                    w-full
                     rounded-lg
                     border
                     border-slate-300
@@ -543,45 +556,56 @@ const SaleForm = ({
                   "
                 >
                   <option value="">
-                    Select a product
+                    {products.length === 0
+                      ? "No products available"
+                      : "Select a product"}
                   </option>
 
-                  {products
-                    .filter(
-                      (product) =>
-                        product.status ===
-                        "active"
-                    )
-                    .map((product) => (
+                  {products.map(
+                    (product) => (
                       <option
-                        key={product.id}
-                        value={product.id}
+                        key={
+                          product.id
+                        }
+                        value={
+                          product.id
+                        }
+                        disabled={
+                          product.stockQuantity <=
+                          0
+                        }
                       >
-                        {product.name} — ৳
-                        {product.sellingPrice}
-                        {" "}
-                        ({product.stockQuantity}{" "}
-                        {product.unit} available)
+                        {product.name} —{" "}
+                        {product.sku} — Stock:{" "}
+                        {
+                          product.stockQuantity
+                        }{" "}
+                        {product.unit}
                       </option>
-                    ))}
+                    )
+                  )}
                 </select>
+
+                {/* QUANTITY */}
 
                 <input
                   type="number"
                   min={1}
+                  max={
+                    selectedProduct?.stockQuantity ||
+                    undefined
+                  }
                   value={quantity}
                   onChange={(event) =>
                     setQuantity(
-                      Math.max(
-                        1,
-                        Number(
-                          event.target.value
-                        )
+                      Number(
+                        event.target.value
                       )
                     )
                   }
                   className="
-                    h-11
+                    h-10
+                    w-full
                     rounded-lg
                     border
                     border-slate-300
@@ -601,20 +625,25 @@ const SaleForm = ({
                   "
                 />
 
+                {/* ADD */}
+
                 <button
                   type="button"
                   onClick={
                     handleAddProduct
                   }
+                  disabled={
+                    !selectedProduct
+                  }
                   className="
                     inline-flex
-                    h-11
+                    h-10
                     items-center
                     justify-center
                     gap-2
                     rounded-lg
                     bg-indigo-600
-                    px-5
+                    px-4
                     text-sm
                     font-medium
                     text-white
@@ -622,81 +651,76 @@ const SaleForm = ({
 
                     hover:bg-indigo-700
 
-                    focus:outline-none
-                    focus:ring-2
-                    focus:ring-indigo-500/30
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
                   "
                 >
-                  <Plus size={17} />
+                  <Plus size={16} />
+
                   Add
                 </button>
               </div>
+
+              {/* SELECTED PRODUCT INFO */}
 
               {selectedProduct && (
                 <div
                   className="
                     mt-3
+                    rounded-lg
+                    bg-slate-50
+                    px-3
+                    py-2
                     text-xs
-                    text-slate-500
+                    text-slate-600
 
+                    dark:bg-slate-900
                     dark:text-slate-400
                   "
                 >
-                  Available stock:{" "}
-                  <span className="
-                    font-medium
-                    text-slate-700
-
-                    dark:text-slate-200
-                  ">
-                    {selectedProduct.stockQuantity}{" "}
-                    {selectedProduct.unit}
+                  <span className="font-medium">
+                    {
+                      selectedProduct.name
+                    }
                   </span>
+
+                  {" · "}
+
+                  Selling Price: ৳
+                  {selectedProduct.sellingPrice.toLocaleString()}
+
+                  {" · "}
+
+                  Available:{" "}
+                  {
+                    selectedProduct.stockQuantity
+                  }{" "}
+                  {
+                    selectedProduct.unit
+                  }
                 </div>
               )}
             </div>
 
-            {/* =====================================
-                SELECTED PRODUCTS
-            ===================================== */}
+            {/* =================================
+                SALE ITEMS
+            ================================= */}
 
             <div>
-              <div
+              <h3
                 className="
                   mb-3
-                  flex
-                  items-center
-                  justify-between
+                  text-sm
+                  font-semibold
+                  text-slate-900
+
+                  dark:text-white
                 "
               >
-                <h3
-                  className="
-                    text-sm
-                    font-semibold
-                    text-slate-900
+                Sale Items
+              </h3>
 
-                    dark:text-white
-                  "
-                >
-                  Sale Items
-                </h3>
-
-                <span
-                  className="
-                    text-xs
-                    text-slate-500
-
-                    dark:text-slate-400
-                  "
-                >
-                  {items.length}{" "}
-                  {items.length === 1
-                    ? "item"
-                    : "items"}
-                </span>
-              </div>
-
-              {items.length === 0 ? (
+              {saleItems.length === 0 ? (
                 <div
                   className="
                     rounded-xl
@@ -732,423 +756,112 @@ const SaleForm = ({
                     dark:border-slate-800
                   "
                 >
-                  {/* DESKTOP */}
+                  {saleItems.map(
+                    (item) => (
+                      <div
+                        key={
+                          item.productId
+                        }
+                        className="
+                          flex
+                          items-center
+                          justify-between
+                          gap-4
+                          border-b
+                          border-slate-200
+                          p-4
+                          last:border-0
 
-                  <div className="
-                    hidden
-                    md:block
-                  ">
-                    <table className="w-full">
+                          dark:border-slate-800
+                        "
+                      >
+                        <div className="min-w-0">
+                          <p
+                            className="
+                              truncate
+                              text-sm
+                              font-medium
+                              text-slate-900
 
-                      <thead>
-                        <tr
-                          className="
-                            border-b
-                            border-slate-200
-                            bg-slate-50
+                              dark:text-white
+                            "
+                          >
+                            {
+                              item.productName
+                            }
+                          </p>
 
-                            dark:border-slate-800
-                            dark:bg-slate-900/50
-                          "
-                        >
-                          <th className="
-                            px-4
-                            py-3
-                            text-left
-                            text-xs
-                            font-semibold
-                            text-slate-500
+                          <p
+                            className="
+                              mt-1
+                              text-xs
+                              text-slate-500
 
-                            dark:text-slate-400
-                          ">
-                            Product
-                          </th>
+                              dark:text-slate-400
+                            "
+                          >
+                            {item.quantity} ×
+                            ৳
+                            {item.unitPrice.toLocaleString()}
+                          </p>
+                        </div>
 
-                          <th className="
-                            px-4
-                            py-3
-                            text-right
-                            text-xs
-                            font-semibold
-                            text-slate-500
-
-                            dark:text-slate-400
-                          ">
-                            Price
-                          </th>
-
-                          <th className="
-                            px-4
-                            py-3
-                            text-center
-                            text-xs
-                            font-semibold
-                            text-slate-500
-
-                            dark:text-slate-400
-                          ">
-                            Quantity
-                          </th>
-
-                          <th className="
-                            px-4
-                            py-3
-                            text-right
-                            text-xs
-                            font-semibold
-                            text-slate-500
-
-                            dark:text-slate-400
-                          ">
-                            Total
-                          </th>
-
-                          <th className="
-                            w-12
-                            px-4
-                            py-3
-                          " />
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {items.map(
-                          (item) => (
-                            <tr
-                              key={
-                                item.productId
-                              }
-                              className="
-                                border-b
-                                border-slate-100
-                                last:border-0
-
-                                dark:border-slate-800
-                              "
-                            >
-                              <td className="
-                                px-4
-                                py-4
-                              ">
-                                <p className="
-                                  text-sm
-                                  font-medium
-                                  text-slate-900
-
-                                  dark:text-white
-                                ">
-                                  {
-                                    item.productName
-                                  }
-                                </p>
-                              </td>
-
-                              <td className="
-                                px-4
-                                py-4
-                                text-right
-                                text-sm
-                                text-slate-600
-
-                                dark:text-slate-300
-                              ">
-                                ৳
-                                {item.unitPrice.toLocaleString()}
-                              </td>
-
-                              <td className="
-                                px-4
-                                py-4
-                              ">
-                                <div className="
-                                  mx-auto
-                                  flex
-                                  w-fit
-                                  items-center
-                                  rounded-lg
-                                  border
-                                  border-slate-200
-
-                                  dark:border-slate-700
-                                ">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuantityChange(
-                                        item.productId,
-                                        item.quantity -
-                                          1
-                                      )
-                                    }
-                                    className="
-                                      p-2
-                                      text-slate-500
-                                      hover:text-slate-900
-
-                                      dark:text-slate-400
-                                      dark:hover:text-white
-                                    "
-                                  >
-                                    <Minus
-                                      size={14}
-                                    />
-                                  </button>
-
-                                  <span className="
-                                    min-w-8
-                                    text-center
-                                    text-sm
-                                    font-medium
-                                    text-slate-900
-
-                                    dark:text-white
-                                  ">
-                                    {
-                                      item.quantity
-                                    }
-                                  </span>
-
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuantityChange(
-                                        item.productId,
-                                        item.quantity +
-                                          1
-                                      )
-                                    }
-                                    className="
-                                      p-2
-                                      text-slate-500
-                                      hover:text-slate-900
-
-                                      dark:text-slate-400
-                                      dark:hover:text-white
-                                    "
-                                  >
-                                    <Plus
-                                      size={14}
-                                    />
-                                  </button>
-                                </div>
-                              </td>
-
-                              <td className="
-                                px-4
-                                py-4
-                                text-right
-                                text-sm
-                                font-semibold
-                                text-slate-900
-
-                                dark:text-white
-                              ">
-                                ৳
-                                {item.total.toLocaleString()}
-                              </td>
-
-                              <td className="
-                                px-4
-                                py-4
-                              ">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleRemoveItem(
-                                      item.productId
-                                    )
-                                  }
-                                  className="
-                                    rounded-lg
-                                    p-2
-                                    text-slate-400
-                                    transition
-
-                                    hover:bg-red-50
-                                    hover:text-red-600
-
-                                    dark:hover:bg-red-500/10
-                                    dark:hover:text-red-400
-                                  "
-                                >
-                                  <Trash2
-                                    size={16}
-                                  />
-                                </button>
-                              </td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-
-                    </table>
-                  </div>
-
-                  {/* MOBILE */}
-
-                  <div className="
-                    divide-y
-                    divide-slate-200
-
-                    dark:divide-slate-800
-
-                    md:hidden
-                  ">
-                    {items.map(
-                      (item) => (
-                        <div
-                          key={
-                            item.productId
-                          }
-                          className="p-4"
-                        >
-                          <div className="
-                            flex
-                            items-start
-                            justify-between
-                            gap-3
-                          ">
-                            <div>
-                              <p className="
-                                text-sm
-                                font-medium
-                                text-slate-900
-
-                                dark:text-white
-                              ">
-                                {
-                                  item.productName
-                                }
-                              </p>
-
-                              <p className="
-                                mt-1
-                                text-xs
-                                text-slate-500
-
-                                dark:text-slate-400
-                              ">
-                                ৳
-                                {item.unitPrice.toLocaleString()}
-                                {" "}per unit
-                              </p>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleRemoveItem(
-                                  item.productId
-                                )
-                              }
-                              className="
-                                rounded-lg
-                                p-2
-                                text-slate-400
-
-                                hover:bg-red-50
-                                hover:text-red-600
-
-                                dark:hover:bg-red-500/10
-                                dark:hover:text-red-400
-                              "
-                            >
-                              <Trash2
-                                size={16}
-                              />
-                            </button>
-                          </div>
-
-                          <div className="
-                            mt-4
-                            flex
-                            items-center
-                            justify-between
-                          ">
-                            <div className="
-                              flex
-                              items-center
-                              rounded-lg
-                              border
-                              border-slate-200
-
-                              dark:border-slate-700
-                            ">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleQuantityChange(
-                                    item.productId,
-                                    item.quantity -
-                                      1
-                                  )
-                                }
-                                className="p-2"
-                              >
-                                <Minus
-                                  size={14}
-                                />
-                              </button>
-
-                              <span className="
-                                min-w-8
-                                text-center
-                                text-sm
-                                font-medium
-                                text-slate-900
-
-                                dark:text-white
-                              ">
-                                {
-                                  item.quantity
-                                }
-                              </span>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleQuantityChange(
-                                    item.productId,
-                                    item.quantity +
-                                      1
-                                  )
-                                }
-                                className="p-2"
-                              >
-                                <Plus
-                                  size={14}
-                                />
-                              </button>
-                            </div>
-
-                            <p className="
+                        <div className="flex items-center gap-4">
+                          <p
+                            className="
                               text-sm
                               font-semibold
                               text-slate-900
 
                               dark:text-white
-                            ">
-                              ৳
-                              {item.total.toLocaleString()}
-                            </p>
-                          </div>
+                            "
+                          >
+                            ৳
+                            {item.total.toLocaleString()}
+                          </p>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleRemoveProduct(
+                                item.productId
+                              )
+                            }
+                            className="
+                              rounded-lg
+                              p-2
+                              text-slate-400
+                              transition
+
+                              hover:bg-red-50
+                              hover:text-red-600
+
+                              dark:hover:bg-red-500/10
+                              dark:hover:text-red-400
+                            "
+                          >
+                            <Trash2
+                              size={16}
+                            />
+                          </button>
                         </div>
-                      )
-                    )}
-                  </div>
+                      </div>
+                    )
+                  )}
                 </div>
               )}
             </div>
 
-            {/* =====================================
-                PAYMENT SUMMARY
-            ===================================== */}
+            {/* =================================
+                PAYMENT
+            ================================= */}
 
             <div
               className="
                 ml-auto
                 w-full
                 max-w-md
+                space-y-4
                 rounded-xl
                 border
                 border-slate-200
@@ -1159,282 +872,268 @@ const SaleForm = ({
                 dark:bg-slate-900/50
               "
             >
-              <h3
+              <div
                 className="
-                  mb-4
-                  text-sm
-                  font-semibold
-                  text-slate-900
-
-                  dark:text-white
-                "
-              >
-                Payment Summary
-              </h3>
-
-              <div className="space-y-3">
-
-                <div className="
                   flex
                   justify-between
                   text-sm
-                ">
-                  <span className="
+                "
+              >
+                <span
+                  className="
                     text-slate-500
 
                     dark:text-slate-400
-                  ">
-                    Subtotal
-                  </span>
+                  "
+                >
+                  Subtotal
+                </span>
 
-                  <span className="
+                <span
+                  className="
                     font-medium
                     text-slate-900
 
                     dark:text-white
-                  ">
-                    ৳{subtotal.toLocaleString()}
-                  </span>
-                </div>
+                  "
+                >
+                  ৳
+                  {subtotal.toLocaleString()}
+                </span>
+              </div>
 
-                <div className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-4
-                ">
-                  <label
-                    htmlFor="discount"
-                    className="
-                      text-sm
-                      text-slate-500
+              {/* DISCOUNT */}
 
-                      dark:text-slate-400
-                    "
-                  >
-                    Discount
-                  </label>
-
-                  <input
-                    id="discount"
-                    type="number"
-                    min={0}
-                    max={subtotal}
-                    value={discount}
-                    onChange={(event) =>
-                      setDiscount(
-                        Math.max(
-                          0,
-                          Number(
-                            event.target.value
-                          )
-                        )
-                      )
-                    }
-                    className="
-                      h-9
-                      w-28
-                      rounded-lg
-                      border
-                      border-slate-300
-                      bg-white
-                      px-2
-                      text-right
-                      text-sm
-                      text-slate-900
-                      outline-none
-
-                      focus:border-indigo-500
-
-                      dark:border-slate-700
-                      dark:bg-slate-900
-                      dark:text-white
-                    "
-                  />
-                </div>
-
-                <div className="
-                  border-t
-                  border-slate-200
-                  pt-3
-
-                  dark:border-slate-800
-                ">
-                  <div className="
-                    flex
-                    justify-between
-                  ">
-                    <span className="
-                      text-sm
-                      font-semibold
-                      text-slate-900
-
-                      dark:text-white
-                    ">
-                      Total
-                    </span>
-
-                    <span className="
-                      text-lg
-                      font-bold
-                      text-indigo-600
-
-                      dark:text-indigo-400
-                    ">
-                      ৳{total.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-4
-                ">
-                  <label
-                    htmlFor="paidAmount"
-                    className="
-                      text-sm
-                      text-slate-500
-
-                      dark:text-slate-400
-                    "
-                  >
-                    Paid Amount
-                  </label>
-
-                  <input
-                    id="paidAmount"
-                    type="number"
-                    min={0}
-                    max={total}
-                    value={paidAmount}
-                    onChange={(event) =>
-                      setPaidAmount(
-                        Math.max(
-                          0,
-                          Number(
-                            event.target.value
-                          )
-                        )
-                      )
-                    }
-                    className="
-                      h-9
-                      w-28
-                      rounded-lg
-                      border
-                      border-slate-300
-                      bg-white
-                      px-2
-                      text-right
-                      text-sm
-                      text-slate-900
-                      outline-none
-
-                      focus:border-indigo-500
-
-                      dark:border-slate-700
-                      dark:bg-slate-900
-                      dark:text-white
-                    "
-                  />
-                </div>
-
-                <div className="
-                  flex
-                  justify-between
-                  border-t
-                  border-slate-200
-                  pt-3
-
-                  dark:border-slate-800
-                ">
-                  <span className="
+              <div>
+                <label
+                  className="
+                    mb-2
+                    block
                     text-sm
                     text-slate-500
 
                     dark:text-slate-400
-                  ">
-                    Due
-                  </span>
+                  "
+                >
+                  Discount
+                </label>
 
-                  <span className="
+                <input
+                  type="number"
+                  min={0}
+                  max={subtotal}
+                  value={discount}
+                  onChange={(event) =>
+                    setDiscount(
+                      Number(
+                        event.target.value
+                      )
+                    )
+                  }
+                  className="
+                    h-10
+                    w-full
+                    rounded-lg
+                    border
+                    border-slate-300
+                    bg-white
+                    px-3
+                    text-sm
+                    text-slate-900
+                    outline-none
+
+                    focus:border-indigo-500
+
+                    dark:border-slate-700
+                    dark:bg-slate-900
+                    dark:text-white
+                  "
+                />
+              </div>
+
+              {/* TOTAL */}
+
+              <div
+                className="
+                  flex
+                  justify-between
+                  border-t
+                  border-slate-200
+                  pt-3
+
+                  dark:border-slate-800
+                "
+              >
+                <span
+                  className="
+                    font-semibold
+                    text-slate-900
+
+                    dark:text-white
+                  "
+                >
+                  Total
+                </span>
+
+                <span
+                  className="
+                    text-lg
+                    font-bold
+                    text-indigo-600
+
+                    dark:text-indigo-400
+                  "
+                >
+                  ৳
+                  {total.toLocaleString()}
+                </span>
+              </div>
+
+              {/* PAID */}
+
+              <div>
+                <label
+                  className="
+                    mb-2
+                    block
+                    text-sm
+                    text-slate-500
+
+                    dark:text-slate-400
+                  "
+                >
+                  Paid Amount
+                </label>
+
+                <input
+                  type="number"
+                  min={0}
+                  max={total}
+                  value={paidAmount}
+                  onChange={(event) =>
+                    setPaidAmount(
+                      Number(
+                        event.target.value
+                      )
+                    )
+                  }
+                  className="
+                    h-10
+                    w-full
+                    rounded-lg
+                    border
+                    border-slate-300
+                    bg-white
+                    px-3
+                    text-sm
+                    text-slate-900
+                    outline-none
+
+                    focus:border-indigo-500
+
+                    dark:border-slate-700
+                    dark:bg-slate-900
+                    dark:text-white
+                  "
+                />
+              </div>
+
+              {/* DUE */}
+
+              <div
+                className="
+                  flex
+                  justify-between
+                "
+              >
+                <span
+                  className="
+                    text-sm
+                    text-slate-500
+
+                    dark:text-slate-400
+                  "
+                >
+                  Due
+                </span>
+
+                <span
+                  className="
                     text-sm
                     font-bold
                     text-red-600
 
                     dark:text-red-400
-                  ">
-                    ৳{dueAmount.toLocaleString()}
-                  </span>
-                </div>
+                  "
+                >
+                  ৳
+                  {dueAmount.toLocaleString()}
+                </span>
+              </div>
 
-                <div className="
+              {/* STATUS */}
+
+              <div
+                className="
                   flex
                   items-center
                   justify-between
-                  pt-1
-                ">
-                  <span className="
+                "
+              >
+                <span
+                  className="
                     text-sm
                     text-slate-500
 
                     dark:text-slate-400
-                  ">
-                    Payment Status
-                  </span>
+                  "
+                >
+                  Status
+                </span>
 
-                  <span
-                    className={`
-                      rounded-full
-                      px-2.5
-                      py-1
-                      text-xs
-                      font-semibold
+                <span
+                  className={`
+                    rounded-full
+                    px-2.5
+                    py-1
+                    text-xs
+                    font-semibold
 
-                      ${
-                        paymentStatus ===
-                        "PAID"
-                          ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
-                          : paymentStatus ===
-                            "PARTIAL"
-                          ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                          : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
-                      }
-                    `}
-                  >
-                    {paymentStatus}
-                  </span>
-                </div>
-
+                    ${
+                      paymentStatus ===
+                      "PAID"
+                        ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                        : paymentStatus ===
+                          "PARTIAL"
+                        ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                        : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
+                    }
+                  `}
+                >
+                  {paymentStatus}
+                </span>
               </div>
             </div>
-
           </div>
         </div>
 
-        {/* =========================================
+        {/* =====================================
             FOOTER
-        ========================================= */}
+        ===================================== */}
 
         <div
           className="
             flex
             shrink-0
-            flex-col-reverse
+            justify-end
             gap-3
             border-t
             border-slate-200
-            bg-white
-            p-4
+            px-5
+            py-4
 
             dark:border-slate-800
-            dark:bg-slate-950
 
-            sm:flex-row
-            sm:justify-end
             sm:px-6
           "
         >
@@ -1450,7 +1149,6 @@ const SaleForm = ({
               text-sm
               font-medium
               text-slate-700
-              transition
 
               hover:bg-slate-50
 
@@ -1465,6 +1163,9 @@ const SaleForm = ({
           <button
             type="button"
             onClick={handleSubmit}
+            disabled={
+              saleItems.length === 0
+            }
             className="
               h-10
               rounded-lg
@@ -1473,19 +1174,16 @@ const SaleForm = ({
               text-sm
               font-medium
               text-white
-              transition
 
               hover:bg-indigo-700
 
-              focus:outline-none
-              focus:ring-2
-              focus:ring-indigo-500/30
+              disabled:cursor-not-allowed
+              disabled:opacity-50
             "
           >
             Complete Sale
           </button>
         </div>
-
       </div>
     </div>
   );

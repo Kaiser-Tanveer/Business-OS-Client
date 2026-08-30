@@ -13,16 +13,22 @@ import type {
 
 import SaleForm from "../features/sales/components/SaleForm";
 import { updateProductStock } from "../features/products/productSlice";
+import SaleDetailsModal from "../features/sales/components/SaleDetailsModal";
 
 const Sales = () => {
   const dispatch = useAppDispatch();
 
+
+  
   const sales = useAppSelector(
     (state) => state.sales.sales
   );
-
+  
   const [showSaleForm, setShowSaleForm] =
     useState(false);
+  
+    const [selectedSale, setSelectedSale] =
+    useState<Sale | null>(null);
 
   // =========================================
   // STATISTICS
@@ -693,16 +699,26 @@ const Sales = () => {
                         "
                       >
 
-                        <td className="
-                          px-5
-                          py-4
-                          text-sm
-                          font-medium
-                          text-slate-900
+                        <td className="px-5 py-4">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedSale(sale)
+                            }
+                            className="
+                              text-sm
+                              font-semibold
+                              text-indigo-600
+                              transition
+                              hover:text-indigo-700
+                              hover:underline
 
-                          dark:text-white
-                        ">
-                          {sale.invoiceNumber}
+                              dark:text-indigo-400
+                              dark:hover:text-indigo-300
+                            "
+                          >
+                            {sale.invoiceNumber}
+                          </button>
                         </td>
 
                         <td className="
@@ -835,15 +851,22 @@ const Sales = () => {
                       gap-3
                     ">
                       <div>
-                        <p className="
-                          text-sm
-                          font-semibold
-                          text-slate-900
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedSale(sale)
+                          }
+                          className="
+                            text-sm
+                            font-semibold
+                            text-indigo-600
+                            hover:underline
 
-                          dark:text-white
-                        ">
+                            dark:text-indigo-400
+                          "
+                        >
                           {sale.invoiceNumber}
-                        </p>
+                        </button>
 
                         <p className="
                           mt-1
@@ -993,15 +1016,22 @@ const Sales = () => {
       ===================================== */}
 
       {showSaleForm && (
-        <SaleForm
-          onClose={() =>
-            setShowSaleForm(false)
-          }
-          onSubmit={
-            handleCreateSale
-          }
-        />
-      )}
+          <SaleForm
+            onClose={() =>
+              setShowSaleForm(false)
+            }
+            onSubmit={handleCreateSale}
+          />
+        )}
+
+        {selectedSale && (
+          <SaleDetailsModal
+            sale={selectedSale}
+            onClose={() =>
+              setSelectedSale(null)
+            }
+          />
+        )}
 
     </div>
   );
