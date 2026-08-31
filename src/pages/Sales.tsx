@@ -2,7 +2,7 @@ import { Plus, ShoppingCart } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useAppDispatch } from "../hooks/useAppDispatch";
-import { useAppSelector } from "../hooks/usAppSelector";
+import { useAppSelector } from "../hooks/useAppSelector";
 
 import { addSale } from "../features/sales/salesSlice";
 

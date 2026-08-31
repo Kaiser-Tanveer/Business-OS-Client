@@ -1,7 +1,9 @@
 import { Plus, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { useAppSelector } from "../../../hooks/usAppSelector";
+import {
+  useAppSelector,
+} from "../../../hooks";
 
 import type {
   PaymentStatus,
@@ -72,13 +74,22 @@ const SaleForm = ({
   );
 
   // =========================================
+  // AVAILABLE PRODUCTS
+  // =========================================
+
+  const availableProducts = products.filter(
+    (product) =>
+      product.status === "active" &&
+      product.stockQuantity > 0
+  );
+
+  // =========================================
   // ADD PRODUCT
   // =========================================
 
   const handleAddProduct = () => {
     if (!selectedProduct) {
       alert("Please select a product.");
-
       return;
     }
 
@@ -86,7 +97,6 @@ const SaleForm = ({
       alert(
         "Quantity must be greater than 0."
       );
-
       return;
     }
 
@@ -97,7 +107,6 @@ const SaleForm = ({
       alert(
         `Only ${selectedProduct.stockQuantity} ${selectedProduct.unit} available in stock.`
       );
-
       return;
     }
 
@@ -129,8 +138,7 @@ const SaleForm = ({
           selectedProduct.id
             ? {
                 ...item,
-                quantity:
-                  newQuantity,
+                quantity: newQuantity,
               }
             : item
         )
@@ -141,14 +149,12 @@ const SaleForm = ({
         {
           productId:
             selectedProduct.id,
-
           quantity,
         },
       ]);
     }
 
     setSelectedProductId("");
-
     setQuantity(1);
   };
 
@@ -162,44 +168,33 @@ const SaleForm = ({
     setItems(
       items.filter(
         (item) =>
-          item.productId !==
-          productId
+          item.productId !== productId
       )
     );
   };
 
   // =========================================
-  // CALCULATE SALE ITEMS
+  // SALE ITEMS
   // =========================================
 
   const saleItems: SaleItem[] =
     useMemo(() => {
       return items
         .map((item) => {
-          const product =
-            products.find(
-              (product) =>
-                product.id ===
-                item.productId
-            );
+          const product = products.find(
+            (product) =>
+              product.id === item.productId
+          );
 
           if (!product) {
             return null;
           }
 
           return {
-            productId:
-              product.id,
-
-            productName:
-              product.name,
-
-            quantity:
-              item.quantity,
-
-            unitPrice:
-              product.sellingPrice,
-
+            productId: product.id,
+            productName: product.name,
+            quantity: item.quantity,
+            unitPrice: product.sellingPrice,
             total:
               item.quantity *
               product.sellingPrice,
@@ -214,7 +209,7 @@ const SaleForm = ({
     }, [items, products]);
 
   // =========================================
-  // SUBTOTAL
+  // TOTALS
   // =========================================
 
   const subtotal = useMemo(() => {
@@ -225,27 +220,15 @@ const SaleForm = ({
     );
   }, [saleItems]);
 
-  // =========================================
-  // TOTAL
-  // =========================================
-
   const total = Math.max(
     0,
     subtotal - discount
   );
 
-  // =========================================
-  // DUE
-  // =========================================
-
   const dueAmount = Math.max(
     0,
     total - paidAmount
   );
-
-  // =========================================
-  // PAYMENT STATUS
-  // =========================================
 
   const paymentStatus: PaymentStatus =
     paidAmount >= total && total > 0
@@ -263,7 +246,6 @@ const SaleForm = ({
       alert(
         "Please add at least one product."
       );
-
       return;
     }
 
@@ -271,7 +253,6 @@ const SaleForm = ({
       alert(
         "Discount cannot be negative."
       );
-
       return;
     }
 
@@ -279,7 +260,6 @@ const SaleForm = ({
       alert(
         "Discount cannot be greater than subtotal."
       );
-
       return;
     }
 
@@ -287,7 +267,6 @@ const SaleForm = ({
       alert(
         "Paid amount cannot be negative."
       );
-
       return;
     }
 
@@ -295,7 +274,6 @@ const SaleForm = ({
       alert(
         "Paid amount cannot be greater than total."
       );
-
       return;
     }
 
@@ -360,9 +338,7 @@ const SaleForm = ({
           dark:bg-slate-950
         "
       >
-        {/* =====================================
-            HEADER
-        ===================================== */}
+        {/* HEADER */}
 
         <div
           className="
@@ -426,9 +402,7 @@ const SaleForm = ({
           </button>
         </div>
 
-        {/* =====================================
-            BODY
-        ===================================== */}
+        {/* BODY */}
 
         <div
           className="
@@ -441,9 +415,7 @@ const SaleForm = ({
         >
           <div className="space-y-6">
 
-            {/* =================================
-                CUSTOMER
-            ================================= */}
+            {/* CUSTOMER */}
 
             <div>
               <label
@@ -480,7 +452,6 @@ const SaleForm = ({
                   text-sm
                   text-slate-900
                   outline-none
-                  transition
 
                   placeholder:text-slate-400
 
@@ -496,9 +467,7 @@ const SaleForm = ({
               />
             </div>
 
-            {/* =================================
-                ADD PRODUCT
-            ================================= */}
+            {/* ADD PRODUCT */}
 
             <div>
               <h3
@@ -523,8 +492,6 @@ const SaleForm = ({
                   sm:grid-cols-[1fr_120px_auto]
                 "
               >
-                {/* PRODUCT */}
-
                 <select
                   value={
                     selectedProductId
@@ -556,12 +523,13 @@ const SaleForm = ({
                   "
                 >
                   <option value="">
-                    {products.length === 0
+                    {availableProducts.length ===
+                    0
                       ? "No products available"
                       : "Select a product"}
                   </option>
 
-                  {products.map(
+                  {availableProducts.map(
                     (product) => (
                       <option
                         key={
@@ -570,13 +538,10 @@ const SaleForm = ({
                         value={
                           product.id
                         }
-                        disabled={
-                          product.stockQuantity <=
-                          0
-                        }
                       >
-                        {product.name} —{" "}
-                        {product.sku} — Stock:{" "}
+                        {product.name}{" "}
+                        — {product.sku}{" "}
+                        — Stock:{" "}
                         {
                           product.stockQuantity
                         }{" "}
@@ -586,14 +551,11 @@ const SaleForm = ({
                   )}
                 </select>
 
-                {/* QUANTITY */}
-
                 <input
                   type="number"
                   min={1}
                   max={
-                    selectedProduct?.stockQuantity ||
-                    undefined
+                    selectedProduct?.stockQuantity
                   }
                   value={quantity}
                   onChange={(event) =>
@@ -616,16 +578,12 @@ const SaleForm = ({
                     outline-none
 
                     focus:border-indigo-500
-                    focus:ring-2
-                    focus:ring-indigo-500/20
 
                     dark:border-slate-700
                     dark:bg-slate-900
                     dark:text-white
                   "
                 />
-
-                {/* ADD */}
 
                 <button
                   type="button"
@@ -647,7 +605,6 @@ const SaleForm = ({
                     text-sm
                     font-medium
                     text-white
-                    transition
 
                     hover:bg-indigo-700
 
@@ -656,12 +613,9 @@ const SaleForm = ({
                   "
                 >
                   <Plus size={16} />
-
                   Add
                 </button>
               </div>
-
-              {/* SELECTED PRODUCT INFO */}
 
               {selectedProduct && (
                 <div
@@ -695,16 +649,12 @@ const SaleForm = ({
                   {
                     selectedProduct.stockQuantity
                   }{" "}
-                  {
-                    selectedProduct.unit
-                  }
+                  {selectedProduct.unit}
                 </div>
               )}
             </div>
 
-            {/* =================================
-                SALE ITEMS
-            ================================= */}
+            {/* SALE ITEMS */}
 
             <div>
               <h3
@@ -831,7 +781,6 @@ const SaleForm = ({
                               rounded-lg
                               p-2
                               text-slate-400
-                              transition
 
                               hover:bg-red-50
                               hover:text-red-600
@@ -852,9 +801,7 @@ const SaleForm = ({
               )}
             </div>
 
-            {/* =================================
-                PAYMENT
-            ================================= */}
+            {/* PAYMENT */}
 
             <div
               className="
@@ -872,49 +819,19 @@ const SaleForm = ({
                 dark:bg-slate-900/50
               "
             >
-              <div
-                className="
-                  flex
-                  justify-between
-                  text-sm
-                "
-              >
-                <span
-                  className="
-                    text-slate-500
-
-                    dark:text-slate-400
-                  "
-                >
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500 dark:text-slate-400">
                   Subtotal
                 </span>
 
-                <span
-                  className="
-                    font-medium
-                    text-slate-900
-
-                    dark:text-white
-                  "
-                >
+                <span className="font-medium text-slate-900 dark:text-white">
                   ৳
                   {subtotal.toLocaleString()}
                 </span>
               </div>
 
-              {/* DISCOUNT */}
-
               <div>
-                <label
-                  className="
-                    mb-2
-                    block
-                    text-sm
-                    text-slate-500
-
-                    dark:text-slate-400
-                  "
-                >
+                <label className="mb-2 block text-sm text-slate-500 dark:text-slate-400">
                   Discount
                 </label>
 
@@ -951,57 +868,19 @@ const SaleForm = ({
                 />
               </div>
 
-              {/* TOTAL */}
-
-              <div
-                className="
-                  flex
-                  justify-between
-                  border-t
-                  border-slate-200
-                  pt-3
-
-                  dark:border-slate-800
-                "
-              >
-                <span
-                  className="
-                    font-semibold
-                    text-slate-900
-
-                    dark:text-white
-                  "
-                >
+              <div className="flex justify-between border-t border-slate-200 pt-3 dark:border-slate-800">
+                <span className="font-semibold text-slate-900 dark:text-white">
                   Total
                 </span>
 
-                <span
-                  className="
-                    text-lg
-                    font-bold
-                    text-indigo-600
-
-                    dark:text-indigo-400
-                  "
-                >
+                <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
                   ৳
                   {total.toLocaleString()}
                 </span>
               </div>
 
-              {/* PAID */}
-
               <div>
-                <label
-                  className="
-                    mb-2
-                    block
-                    text-sm
-                    text-slate-500
-
-                    dark:text-slate-400
-                  "
-                >
+                <label className="mb-2 block text-sm text-slate-500 dark:text-slate-400">
                   Paid Amount
                 </label>
 
@@ -1038,56 +917,19 @@ const SaleForm = ({
                 />
               </div>
 
-              {/* DUE */}
-
-              <div
-                className="
-                  flex
-                  justify-between
-                "
-              >
-                <span
-                  className="
-                    text-sm
-                    text-slate-500
-
-                    dark:text-slate-400
-                  "
-                >
+              <div className="flex justify-between">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   Due
                 </span>
 
-                <span
-                  className="
-                    text-sm
-                    font-bold
-                    text-red-600
-
-                    dark:text-red-400
-                  "
-                >
+                <span className="text-sm font-bold text-red-600 dark:text-red-400">
                   ৳
                   {dueAmount.toLocaleString()}
                 </span>
               </div>
 
-              {/* STATUS */}
-
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                "
-              >
-                <span
-                  className="
-                    text-sm
-                    text-slate-500
-
-                    dark:text-slate-400
-                  "
-                >
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   Status
                 </span>
 
@@ -1117,9 +959,7 @@ const SaleForm = ({
           </div>
         </div>
 
-        {/* =====================================
-            FOOTER
-        ===================================== */}
+        {/* FOOTER */}
 
         <div
           className="
