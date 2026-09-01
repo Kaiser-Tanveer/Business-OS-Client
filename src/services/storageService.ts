@@ -1,10 +1,6 @@
 const STORAGE_KEY = "business-os-state";
 
 export const storageService = {
-  // =========================================
-  // LOAD STATE
-  // =========================================
-
   loadState: <T>(): T | undefined => {
     try {
       const serializedState =
@@ -14,9 +10,7 @@ export const storageService = {
         return undefined;
       }
 
-      return JSON.parse(
-        serializedState
-      ) as T;
+      return JSON.parse(serializedState) as T;
     } catch (error) {
       console.error(
         "Failed to load application state:",
@@ -26,10 +20,6 @@ export const storageService = {
       return undefined;
     }
   },
-
-  // =========================================
-  // SAVE STATE
-  // =========================================
 
   saveState: <T>(state: T): void => {
     try {
@@ -47,10 +37,6 @@ export const storageService = {
       );
     }
   },
-
-  // =========================================
-  // CLEAR STATE
-  // =========================================
 
   clearState: (): void => {
     try {
